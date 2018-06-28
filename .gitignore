@@ -34,6 +34,7 @@ captures/
 
 # IntelliJ
 *.iml
+.idea/
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/gradle.xml
@@ -47,6 +48,14 @@ captures/
 #*.jks
 
 # External native build folder generated in Android Studio 2.2 and later
+.gradle
+/local.properties
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+.DS_Store
+/build
+/captures
 .externalNativeBuild
 
 # Google Services (e.g. APIs or Firebase)
