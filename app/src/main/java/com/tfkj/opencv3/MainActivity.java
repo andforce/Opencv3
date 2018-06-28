@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_OPEN_IMAGE = 1;
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             Log.d("FIND_OBJ", "start find");
-                            final int count = find_objects(imagePath);
+                            final ArrayList<String> count = find_objects(imagePath);
                             Log.d("FIND_OBJ", "count: " + count);
                             getWindow().getDecorView().post(new Runnable() {
                                 @Override
@@ -89,5 +91,5 @@ public class MainActivity extends AppCompatActivity {
 
     //public static native void gray();
 
-    public static native int find_objects(String imagePath);
+    public static native ArrayList<String> find_objects(String imagePath);
 }
