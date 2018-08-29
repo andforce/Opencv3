@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
 //                    mImageView.setImageBitmap(bitmap);
 
-                    new FloodFillUtils().floodFill(bitmap, 10,10, 100, 100);
+                    new FloodFillUtils().floodFill(bitmap, 10,10, 20, 20);
                     mImageView.setImageBitmap(bitmap);
 
 

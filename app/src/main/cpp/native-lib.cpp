@@ -171,12 +171,12 @@ BitmapToMat2(JNIEnv *env, jobject &bitmap, Mat &mat, jboolean needUnPremultiplyA
     }
 }
 
-void BitmapToMat(JNIEnv *env, jobject &bitmap, Mat &mat) {
-    BitmapToMat2(env, bitmap, mat, static_cast<jboolean>(false), CV_8UC3);
+void BitmapToMat(JNIEnv *env, jobject &bitmap, Mat &mat, int _type) {
+    BitmapToMat2(env, bitmap, mat, static_cast<jboolean>(false), _type);
 }
 
-void MatToBitmap2
-        (JNIEnv *env, Mat &mat, jobject &bitmap, jboolean needPremultiplyAlpha) {
+void
+MatToBitmap2(JNIEnv *env, Mat &mat, jobject &bitmap, jboolean needPremultiplyAlpha, int _type) {
     AndroidBitmapInfo info;
     void *pixels = 0;
     Mat &src = mat;
@@ -192,7 +192,7 @@ void MatToBitmap2
         CV_Assert(AndroidBitmap_lockPixels(env, bitmap, &pixels) >= 0);
         CV_Assert(pixels);
         if (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888) {
-            Mat tmp(info.height, info.width, CV_8UC4, pixels);
+            Mat tmp(info.height, info.width, _type, pixels);
             if (src.type() == CV_8UC1) {
                 LOGD("nMatToBitmap: CV_8UC1 -> RGBA_8888");
                 cvtColor(src, tmp, COLOR_GRAY2RGBA);
@@ -238,8 +238,8 @@ void MatToBitmap2
     }
 }
 
-void MatToBitmap(JNIEnv *env, Mat &mat, jobject &bitmap) {
-    MatToBitmap2(env, mat, bitmap, false);
+void MatToBitmap(JNIEnv *env, Mat &mat, jobject &bitmap, int _type) {
+    MatToBitmap2(env, mat, bitmap, false, _type);
 }
 
 Mat srcMat;
@@ -256,15 +256,38 @@ JNIEXPORT void JNICALL
 Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jobject bitmap,
                                                jint x, jint y, jint low, jint up) {
 
-    BitmapToMat(env, bitmap, srcMat);
+    BitmapToMat(env, bitmap, srcMat, CV_8UC4);
+
+    Mat bgra;
+    Mat bgr;
+
+    //转换成BGRA
+    cvtColor(srcMat,bgra,CV_RGBA2BGRA);
+    //转换成BGR
+    cvtColor(srcMat,bgr,CV_RGBA2BGR);
+
+    srcMat = bgr;
+
+    string path = "/storage/emulated/0/Download/src1.jpg";
+    imwrite(path,srcMat);
+
+//    MatToBitmap(env, srcMat, bitmap, CV_8UC3);
+//
+//    if (true){
+//        return;
+//    }
+
     srcMat.copyTo(dstMat);
+
+
+    string dstPath = "/storage/emulated/0/Download/dst.jpg";
+    imwrite(dstPath,dstMat);
 
     maskMat.create(srcMat.rows + 2, srcMat.cols + 2, CV_8UC1);
 
-
-    LOGD("start find-----------------");
-
     Point mSeedPoint = Point(x, y);
+
+    LOGD("start find-----------------%d, %d", x, y);
 
     int lowDifference = FILLMODE == 0 ? 0 : low;
     int UpDifference = FILLMODE == 0 ? 0 : up;
@@ -275,8 +298,8 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
 //    int g = (unsigned) theRNG() & 255;
 //    int r = (unsigned) theRNG() & 255;
 
-    int b = (unsigned) 255;
-    int g = (unsigned) 255;
+    int b = (unsigned) 0;
+    int g = (unsigned) 0;
     int r = (unsigned) 255;
 
 
@@ -293,14 +316,22 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
                          Scalar(UpDifference, UpDifference, UpDifference), flags);
 
     } else {
-        LOGD("start find-----------------floodFill");
+        LOGD("start find-----------------floodFill flags: %d", flags);
 
         area = floodFill(dst, mSeedPoint, newVal, &ccomp,
                          Scalar(lowDifference, lowDifference, lowDifference),
                          Scalar(UpDifference, UpDifference, UpDifference), flags);
+
+        string path = "/storage/emulated/0/Download/555.jpg";
+        imwrite(path,dst);
     }
 
-    MatToBitmap(env, dst, bitmap);
+    LOGD("有多少个点被重画-----------------%d", area);
+
+    Mat show;
+    cvtColor(dst,dst,CV_BGR2RGBA);
+
+    MatToBitmap(env, dst, bitmap, CV_8UC4);
 
 //    Mat mat_image_src ;
 //    BitmapToMat(env,bitmap,mat_image_src);//图片转化成mat
