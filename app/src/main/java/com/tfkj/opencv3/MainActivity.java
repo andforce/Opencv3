@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -13,8 +15,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.tfkj.opencv3.view.FloodFillImageView;
 
 import java.util.ArrayList;
 
@@ -28,16 +31,17 @@ public class MainActivity extends AppCompatActivity {
 
     private ProgressDialog dlg;
 
-    private int x = -1;
     private int mStartY = -1;
 
-    private int value = 1;
+    private int value = 20;
 
     Bitmap floodFillBitmap;
     Bitmap orgBitmap;
 
-    ImageView mImageView;
+    FloodFillImageView mImageView;
     ArrayList<String> mResult;
+
+    int[] realPoint;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -58,23 +62,50 @@ public class MainActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()){
                     case MotionEvent.ACTION_DOWN:{
-                        x = (int) event.getX();
+                        mStartY = (int) event.getY();
+
+                        Rect rectDis = mImageView.getImageDisplayRect();
+
+                        Matrix matrix = mImageView.getImageMatrix();
+
+                        Log.d("ACTION_MOVE realSize->", "DiaplyRect:" + rectDis + " Matrix:" + matrix);
+
+                        if (rectDis.contains((int) event.getX(), (int) event.getY())){
+
+
+                            realPoint = mImageView.pointOnReadImage((int) event.getX(), (int) event.getY());
+
+                            Log.d("ACTION_MOVE imageSize->", "点到了 " + "X:" +event.getX()  + " Y:" + event.getY() + " realX:" + realPoint[0] + " realY:" + realPoint[1]);
+
+                            Bitmap bitmap = orgBitmap.copy(Bitmap.Config.ARGB_8888, true);
+
+                            Log.d("ACTION_MOVE imageSize->", "Bitmap W:" + bitmap.getWidth() + " Bitmap H:" + bitmap.getHeight());
+
+                            //Log.d("ACTION_MOVE", "NEW:" + bitmap + " ORG:" + orgBitmap);
+
+                            FloodFillUtils.floodFillBitmap(bitmap, realPoint[0], realPoint[1], value, value);
+                            mImageView.setImageBitmap(bitmap);
+
+                        } else {
+                            Log.d("ACTION_MOVE imageSize->", "没点到 " + "X:" +event.getX()  + " Y:" + event.getY() + " display:" + rectDis);
+                            mImageView.setImageBitmap(orgBitmap);
+                        }
+
                         break;
                     }
 
                     case MotionEvent.ACTION_MOVE:{
 
-                        if (Math.abs(event.getY() - mStartY) > 5){
+                        if (Math.abs(event.getY() - mStartY) > 100){
 
                             if (event.getY() > mStartY){
                                 // Scroll Down
-                                value += 5;
+                                value += 1;
 
                             } else {
                                 // Scroll Up
-                                value -= 5;
+                                value -= 1;
                             }
-
 
                             if (value > 255){
                                 value = 255;
@@ -86,8 +117,12 @@ public class MainActivity extends AppCompatActivity {
 
                             Log.d("ACTION_MOVE", "floodFill" + value + " StartY:" + mStartY);
 
-                            FloodFillUtils.floodFill(floodFillBitmap, 10, 10, value, value);
-                            mImageView.setImageBitmap(floodFillBitmap);
+                            Bitmap bitmap = orgBitmap.copy(Bitmap.Config.ARGB_8888, true);
+
+                            Log.d("ACTION_MOVE", "NEW:" + bitmap + " ORG:" + orgBitmap);
+
+                            FloodFillUtils.floodFillBitmap(bitmap, realPoint[0], realPoint[1], value, value);
+                            mImageView.setImageBitmap(bitmap);
                         }
 
                         Log.d("ACTION_MOVE", ">>>>>> floodFill value:" + value + " StartY:" + mStartY + " Y:" + event.getY());
@@ -95,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     case MotionEvent.ACTION_UP:{
-                        orgBitmap = floodFillBitmap;
+                        value = 20;
                         break;
                     }
                 }

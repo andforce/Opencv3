@@ -6,11 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <ImageView
-        android:background="@color/colorPrimary"
+    <com.tfkj.opencv3.view.FloodFillImageView
+        android:background="@android:color/darker_gray"
         android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="match_parent"
         tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="0dp" />
