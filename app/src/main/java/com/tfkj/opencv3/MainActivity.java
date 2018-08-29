@@ -3,6 +3,7 @@ package com.tfkj.opencv3;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -102,36 +103,56 @@ public class MainActivity extends AppCompatActivity {
                     int colIndex = cursor.getColumnIndex(filePathColumn[0]);
                     final String imagePath = cursor.getString(colIndex);
                     cursor.close();
-                    setPic(imagePath);
+//                    setPic(imagePath);
+
+                    int targetW = mImageView.getWidth();
+                    int targetH = mImageView.getHeight();
+
+                    BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                    bmOptions.inJustDecodeBounds = true;
+                    BitmapFactory.decodeFile(imagePath, bmOptions);
+                    int photoW = bmOptions.outWidth;
+                    int photoH = bmOptions.outHeight;
+
+                    int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
+
+                    bmOptions.inJustDecodeBounds = false;
+                    bmOptions.inSampleSize = scaleFactor;
+                    bmOptions.inPurgeable = true;
+
+                    Bitmap bitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
+
+                    new FloodFillUtils().floodFill(bitmap, 0,0, 20, 20);
+                    mImageView.setImageBitmap(bitmap);
 
 
-                    dlg.setMessage("正在查找");
-                    dlg.setCancelable(false);
-                    dlg.setIndeterminate(true);
-                    dlg.show();
-
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.d("FIND_OBJ", "start find");
-                            mResult = find_objects(imagePath);
-                            Log.d("FIND_OBJ", "count: " + mResult.size());
-                            getWindow().getDecorView().post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    dlg.dismiss();
-
-                                    Toast.makeText(getApplicationContext(),"找到：" + mResult.size() + "个", Toast.LENGTH_SHORT).show();
-
-                                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
-                                    intent.putStringArrayListExtra("result", mResult);
-                                    startActivity(intent);
-
-
-                                }
-                            });
-                        }
-                    }).start();
+//                    dlg.setMessage("正在查找");
+//                    dlg.setCancelable(false);
+//                    dlg.setIndeterminate(true);
+//                    dlg.show();
+//
+//                    new Thread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            Log.d("FIND_OBJ", "start find");
+//                            mResult = find_objects(imagePath);
+//                            Log.d("FIND_OBJ", "count: " + mResult.size());
+//                            getWindow().getDecorView().post(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    dlg.dismiss();
+//
+//                                    Toast.makeText(getApplicationContext(),"找到：" + mResult.size() + "个", Toast.LENGTH_SHORT).show();
+//
+//                                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
+//                                    intent.putStringArrayListExtra("result", mResult);
+//                                    startActivity(intent);
+//
+//
+//                                }
+//                            });
+//                        }
+//                    }).start();
                 }
                 break;
         }
