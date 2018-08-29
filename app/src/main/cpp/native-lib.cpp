@@ -341,3 +341,57 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
 //    MatToBitmap(env,mat_image_dst,bitmap);//mat转成化图片
 
 }
+
+
+
+
+/**
+ * Android Bitmap ARGB
+ * OpenCV CV_8UC4 默认是RGBA
+ * flood识别的是BGR
+ * 所以要把RGBA-->BGR
+ */
+Mat srcRGBA;
+Mat srcBGR;
+Mat resultRGBA;
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, jobject bitmap,
+                                                     jint x, jint y, jint low, jint up) {
+
+    // 把Bitmap转成Mat
+    BitmapToMat(env, bitmap, srcRGBA, CV_8UC4);
+
+    //转换成BGR
+    cvtColor(srcRGBA,srcBGR,CV_RGBA2BGR);
+
+
+    int lowDifference = FILLMODE == 0 ? 0 : low;
+    int UpDifference = FILLMODE == 0 ? 0 : up;
+    int flags = g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
+
+    int b = (unsigned) 0;
+    int g = (unsigned) 0;
+    int r = (unsigned) 255;
+
+
+    Rect ccomp;
+    Scalar newVal = Scalar(b, g, r);
+    Point mSeedPoint = Point(x, y);
+    int area = floodFill(srcBGR, mSeedPoint, newVal, &ccomp,
+                     Scalar(lowDifference, lowDifference, lowDifference),
+                     Scalar(UpDifference, UpDifference, UpDifference), flags);
+
+    string path = "/storage/emulated/0/Download/srcBGR.jpg";
+    imwrite(path,srcBGR);
+
+    LOGD("有多少个点被重画-----------------%d", area);
+
+    // 转换成RGBA
+    cvtColor(srcBGR,resultRGBA,CV_BGR2RGBA);
+
+    // 转成Bitmap
+    MatToBitmap(env, resultRGBA, bitmap, CV_8UC4);
+
+    return bitmap;
+}

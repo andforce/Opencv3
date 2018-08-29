@@ -1,5 +1,6 @@
 package com.tfkj.opencv3;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
@@ -10,12 +11,12 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,15 +28,80 @@ public class MainActivity extends AppCompatActivity {
 
     private ProgressDialog dlg;
 
+    private int x = -1;
+    private int mStartY = -1;
+
+    private int value = 1;
+
+    Bitmap floodFillBitmap;
+    Bitmap orgBitmap;
+
     ImageView mImageView;
     ArrayList<String> mResult;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mImageView = findViewById(R.id.imageView);
+        mImageView.post(new Runnable() {
+            @Override
+            public void run() {
+                mStartY = mImageView.getMeasuredHeight() / 2;
+            }
+        });
+
+        mImageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()){
+                    case MotionEvent.ACTION_DOWN:{
+                        x = (int) event.getX();
+                        break;
+                    }
+
+                    case MotionEvent.ACTION_MOVE:{
+
+                        if (Math.abs(event.getY() - mStartY) > 5){
+
+                            if (event.getY() > mStartY){
+                                // Scroll Down
+                                value += 5;
+
+                            } else {
+                                // Scroll Up
+                                value -= 5;
+                            }
+
+
+                            if (value > 255){
+                                value = 255;
+                            }
+
+                            if (value < 0){
+                                value = 0;
+                            }
+
+                            Log.d("ACTION_MOVE", "floodFill" + value + " StartY:" + mStartY);
+
+                            FloodFillUtils.floodFill(floodFillBitmap, 10, 10, value, value);
+                            mImageView.setImageBitmap(floodFillBitmap);
+                        }
+
+                        Log.d("ACTION_MOVE", ">>>>>> floodFill value:" + value + " StartY:" + mStartY + " Y:" + event.getY());
+                        break;
+                    }
+
+                    case MotionEvent.ACTION_UP:{
+                        orgBitmap = floodFillBitmap;
+                        break;
+                    }
+                }
+                return true;
+            }
+        });
 
         dlg = new ProgressDialog(this);
 
@@ -94,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_OPEN_IMAGE:
                 if (resultCode == RESULT_OK) {
                     Uri imgUri = data.getData();
-                    String[] filePathColumn = { MediaStore.Images.Media.DATA };
+                    String[] filePathColumn = {MediaStore.Images.Media.DATA};
 
                     Cursor cursor = getContentResolver().query(imgUri, filePathColumn,
                             null, null, null);
@@ -121,48 +187,59 @@ public class MainActivity extends AppCompatActivity {
                     bmOptions.inSampleSize = scaleFactor;
                     bmOptions.inPurgeable = true;
 
-                    final Bitmap bitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
+                    orgBitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
 
-//                    mImageView.setImageBitmap(bitmap);
+                    floodFillBitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
 
-                    mImageView.setImageBitmap(bitmap);
+                    mImageView.setImageBitmap(orgBitmap);
 
-
-                    mImageView.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            FloodFillUtils.floodFill(bitmap, 10,10, 20, 20);
-                            mImageView.setImageBitmap(bitmap);
-                        }
-                    }, 1000);
-
-//                    dlg.setMessage("正在查找");
-//                    dlg.setCancelable(false);
-//                    dlg.setIndeterminate(true);
-//                    dlg.show();
+//                    Bitmap bitmap1 = FloodFillUtils.floodFillBitmap(bitmap, 10, 10, 20, 20);
 //
-//                    new Thread(new Runnable() {
+//                    mImageView.setImageBitmap(bitmap1);
+
+//                    mImageView.postDelayed(new Runnable() {
 //                        @Override
 //                        public void run() {
-//                            Log.d("FIND_OBJ", "start find");
-//                            mResult = find_objects(imagePath);
-//                            Log.d("FIND_OBJ", "count: " + mResult.size());
-//                            getWindow().getDecorView().post(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    dlg.dismiss();
-//
-//                                    Toast.makeText(getApplicationContext(),"找到：" + mResult.size() + "个", Toast.LENGTH_SHORT).show();
-//
-//                                    Intent intent = new Intent(MainActivity.this, ResultActivity.class);
-//                                    intent.putStringArrayListExtra("result", mResult);
-//                                    startActivity(intent);
-//
-//
-//                                }
-//                            });
+//                            if (false) {
+//                                FloodFillUtils.floodFill(floodFillBitmap, 10, 10, 20, 20);
+//                                mImageView.setImageBitmap(floodFillBitmap);
+//                            } else {
+//                                Bitmap bitmap1 = FloodFillUtils.floodFillBitmap(floodFillBitmap, 10, 10, 20, 20);
+//                                mImageView.setImageBitmap(floodFillBitmap);
+//                            }
 //                        }
-//                    }).start();
+//                    }, 1000);
+
+
+                    if (false) {
+                        dlg.setMessage("正在查找");
+                        dlg.setCancelable(false);
+                        dlg.setIndeterminate(true);
+                        dlg.show();
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.d("FIND_OBJ", "start find");
+                                mResult = find_objects(imagePath);
+                                Log.d("FIND_OBJ", "count: " + mResult.size());
+                                getWindow().getDecorView().post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        dlg.dismiss();
+
+                                        Toast.makeText(getApplicationContext(), "找到：" + mResult.size() + "个", Toast.LENGTH_SHORT).show();
+
+                                        Intent intent = new Intent(MainActivity.this, ResultActivity.class);
+                                        intent.putStringArrayListExtra("result", mResult);
+                                        startActivity(intent);
+
+
+                                    }
+                                });
+                            }
+                        }).start();
+                    }
                 }
                 break;
         }
