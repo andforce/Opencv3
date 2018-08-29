@@ -6,6 +6,7 @@
 #include <android/bitmap.h>
 
 #include <android/bitmap.h>
+
 #define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, "error", __VA_ARGS__))
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "debug", __VA_ARGS__))
 
@@ -17,7 +18,7 @@ using namespace std;
 
 bool isNormal(const vector<vector<Point>> &contours, int i);
 
-jobject cpp2java(JNIEnv *env,std::vector<std::string> vector) {
+jobject cpp2java(JNIEnv *env, std::vector<std::string> vector) {
 
     static jclass java_util_ArrayList;
     static jmethodID java_util_ArrayList_;
@@ -25,11 +26,12 @@ jobject cpp2java(JNIEnv *env,std::vector<std::string> vector) {
     jmethodID java_util_ArrayList_get;
     jmethodID java_util_ArrayList_add;
 
-    java_util_ArrayList      = static_cast<jclass>(env->NewGlobalRef(env->FindClass("java/util/ArrayList")));
-    java_util_ArrayList_     = env->GetMethodID(java_util_ArrayList, "<init>", "(I)V");
-    java_util_ArrayList_size = env->GetMethodID (java_util_ArrayList, "size", "()I");
-    java_util_ArrayList_get  = env->GetMethodID(java_util_ArrayList, "get", "(I)Ljava/lang/Object;");
-    java_util_ArrayList_add  = env->GetMethodID(java_util_ArrayList, "add", "(Ljava/lang/Object;)Z");
+    java_util_ArrayList = static_cast<jclass>(env->NewGlobalRef(
+            env->FindClass("java/util/ArrayList")));
+    java_util_ArrayList_ = env->GetMethodID(java_util_ArrayList, "<init>", "(I)V");
+    java_util_ArrayList_size = env->GetMethodID(java_util_ArrayList, "size", "()I");
+    java_util_ArrayList_get = env->GetMethodID(java_util_ArrayList, "get", "(I)Ljava/lang/Object;");
+    java_util_ArrayList_add = env->GetMethodID(java_util_ArrayList, "add", "(Ljava/lang/Object;)Z");
 
 
     jobject result = env->NewObject(java_util_ArrayList, java_util_ArrayList_, vector.size());
@@ -56,8 +58,8 @@ Java_com_tfkj_opencv3_MainActivity_find_1objects(JNIEnv *env, jclass type, jstri
     vector<Mat> channels;
     split(dst, channels);
 
-    for (int i = 0; i < channels[3].rows; i++){
-        for (int j = 0; j < channels[3].cols; j++){
+    for (int i = 0; i < channels[3].rows; i++) {
+        for (int j = 0; j < channels[3].cols; j++) {
             channels[3].at<uchar>(i, j) = 0;
         }
     }
@@ -70,11 +72,12 @@ Java_com_tfkj_opencv3_MainActivity_find_1objects(JNIEnv *env, jclass type, jstri
     cvtColor(image, gray, COLOR_BGR2GRAY);
 
     Mat thresh;
-    threshold(gray, thresh, 0, 255, THRESH_BINARY_INV|THRESH_OTSU);
+    threshold(gray, thresh, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
 
     imwrite("/storage/emulated/0/Download/bin.png", thresh);
 
-    morphologyEx(thresh, thresh, MORPH_CLOSE, getStructuringElement(MORPH_RECT, Size(15, 15)), Point(-1,-1), 2);
+    morphologyEx(thresh, thresh, MORPH_CLOSE, getStructuringElement(MORPH_RECT, Size(15, 15)),
+                 Point(-1, -1), 2);
     //morphologyEx(thresh, thresh, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(3, 3)), Point(-1,-1), 2);
 
     vector<vector<Point>> contours;
@@ -83,14 +86,14 @@ Java_com_tfkj_opencv3_MainActivity_find_1objects(JNIEnv *env, jclass type, jstri
 
     int count = 0;
     vector<string> result;
-    for (int i = 0; i< contours.size(); i++) {
+    for (int i = 0; i < contours.size(); i++) {
         LOGD("contourArea = %f\n", contourArea(contours[i]));
         if (isNormal(contours, i)) {
             continue;
         }
 
-        for (int k = 0; k < dst1.rows; k++){
-            for (int j = 0; j < dst1.cols; j++){
+        for (int k = 0; k < dst1.rows; k++) {
+            for (int j = 0; j < dst1.cols; j++) {
                 if (pointPolygonTest(contours[i], Point2f(j, k), false) > 0) {
                     dst1.at<Vec4b>(k, j)[3] = 255;
                 }
@@ -103,7 +106,7 @@ Java_com_tfkj_opencv3_MainActivity_find_1objects(JNIEnv *env, jclass type, jstri
 
         ostringstream stream;
         stream << i;
-        count ++;
+        count++;
         string path = "/storage/emulated/0/Download/" + stream.str() + ".png";
         result.push_back(path);
 
@@ -115,11 +118,14 @@ Java_com_tfkj_opencv3_MainActivity_find_1objects(JNIEnv *env, jclass type, jstri
     return cpp2java(env, result);
 }
 
-bool isNormal(const vector<vector<Point>> &contours, int i) { return contourArea(contours[i]) < 1000; }
+bool isNormal(const vector<vector<Point>> &contours, int i) {
+    return contourArea(contours[i]) < 1000;
+}
 
 //===================================================================================================================
 
-void BitmapToMat2(JNIEnv *env, jobject& bitmap, Mat& mat, jboolean needUnPremultiplyAlpha) {
+void
+BitmapToMat2(JNIEnv *env, jobject &bitmap, Mat &mat, jboolean needUnPremultiplyAlpha, int _type) {
     AndroidBitmapInfo info;
     void *pixels = 0;
     Mat &dst = mat;
@@ -131,15 +137,19 @@ void BitmapToMat2(JNIEnv *env, jobject& bitmap, Mat& mat, jboolean needUnPremult
                   info.format == ANDROID_BITMAP_FORMAT_RGB_565);
         CV_Assert(AndroidBitmap_lockPixels(env, bitmap, &pixels) >= 0);
         CV_Assert(pixels);
-        dst.create(info.height, info.width, CV_8UC4);
+        dst.create(info.height, info.width, _type);
+
         if (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888) {
-            LOGD("nBitmapToMat: RGBA_8888 -> CV_8UC4");
-            Mat tmp(info.height, info.width, CV_8UC4, pixels);
-            if (needUnPremultiplyAlpha) cvtColor(tmp, dst, COLOR_mRGBA2RGBA);
-            else tmp.copyTo(dst);
+            LOGD("nBitmapToMat: RGBA_8888");
+            Mat tmp(info.height, info.width, _type, pixels);
+            if (needUnPremultiplyAlpha) {
+                cvtColor(tmp, dst, COLOR_mRGBA2RGBA);
+            } else {
+                tmp.copyTo(dst);
+            }
         } else {
             // info.format == ANDROID_BITMAP_FORMAT_RGB_565
-            LOGD("nBitmapToMat: RGB_565 -> CV_8UC4");
+            LOGD("nBitmapToMat: RGB_565");
             Mat tmp(info.height, info.width, CV_8UC2, pixels);
             cvtColor(tmp, dst, COLOR_BGR5652RGBA);
         }
@@ -161,12 +171,12 @@ void BitmapToMat2(JNIEnv *env, jobject& bitmap, Mat& mat, jboolean needUnPremult
     }
 }
 
-void BitmapToMat(JNIEnv *env, jobject& bitmap, Mat& mat) {
-    BitmapToMat2(env, bitmap, mat, false);
+void BitmapToMat(JNIEnv *env, jobject &bitmap, Mat &mat) {
+    BitmapToMat2(env, bitmap, mat, static_cast<jboolean>(false), CV_8UC3);
 }
 
 void MatToBitmap2
-        (JNIEnv *env, Mat& mat, jobject& bitmap, jboolean needPremultiplyAlpha) {
+        (JNIEnv *env, Mat &mat, jobject &bitmap, jboolean needPremultiplyAlpha) {
     AndroidBitmapInfo info;
     void *pixels = 0;
     Mat &src = mat;
@@ -228,20 +238,75 @@ void MatToBitmap2
     }
 }
 
-void MatToBitmap(JNIEnv *env, Mat& mat, jobject& bitmap) {
+void MatToBitmap(JNIEnv *env, Mat &mat, jobject &bitmap) {
     MatToBitmap2(env, mat, bitmap, false);
 }
+
+Mat srcMat;
+Mat dstMat;
+Mat maskMat;
+
+int FILLMODE = 1;
+int g_nConnectivity = 4;
+bool g_bUseMask = false;
+int g_nNewMaskVal = 255;
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jobject bitmap,
                                                jint x, jint y, jint low, jint up) {
 
-    Mat mat_image_src ;
-    BitmapToMat(env,bitmap,mat_image_src);//图片转化成mat
-    Mat mat_image_dst;
-    blur(mat_image_src, mat_image_dst, Size2i(10,10));
-    //第四步：转成java数组->更新
-    MatToBitmap(env,mat_image_dst,bitmap);//mat转成化图片
+    BitmapToMat(env, bitmap, srcMat);
+    srcMat.copyTo(dstMat);
+
+    maskMat.create(srcMat.rows + 2, srcMat.cols + 2, CV_8UC1);
+
+
+    LOGD("start find-----------------");
+
+    Point mSeedPoint = Point(x, y);
+
+    int lowDifference = FILLMODE == 0 ? 0 : low;
+    int UpDifference = FILLMODE == 0 ? 0 : up;
+    int flags =
+            g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
+
+//    int b = (unsigned) theRNG() & 255;
+//    int g = (unsigned) theRNG() & 255;
+//    int r = (unsigned) theRNG() & 255;
+
+    int b = (unsigned) 255;
+    int g = (unsigned) 255;
+    int r = (unsigned) 255;
+
+
+    Rect ccomp;
+    Scalar newVal = Scalar(b, g, r);
+    Mat dst = dstMat;//目标图的赋值
+    int area;
+    if (g_bUseMask) {
+
+
+        threshold(maskMat, maskMat, 1, 128, THRESH_BINARY);
+        area = floodFill(dst, maskMat, mSeedPoint, newVal, &ccomp,
+                         Scalar(lowDifference, lowDifference, lowDifference),
+                         Scalar(UpDifference, UpDifference, UpDifference), flags);
+
+    } else {
+        LOGD("start find-----------------floodFill");
+
+        area = floodFill(dst, mSeedPoint, newVal, &ccomp,
+                         Scalar(lowDifference, lowDifference, lowDifference),
+                         Scalar(UpDifference, UpDifference, UpDifference), flags);
+    }
+
+    MatToBitmap(env, dst, bitmap);
+
+//    Mat mat_image_src ;
+//    BitmapToMat(env,bitmap,mat_image_src);//图片转化成mat
+//    Mat mat_image_dst;
+//    blur(mat_image_src, mat_image_dst, Size2i(10,10));
+//    //第四步：转成java数组->更新
+//    MatToBitmap(env,mat_image_dst,bitmap);//mat转成化图片
 
 }

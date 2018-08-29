@@ -117,13 +117,17 @@ public class MainActivity extends AppCompatActivity {
                     int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
 
                     bmOptions.inJustDecodeBounds = false;
+//                    bmOptions.inPreferredConfig = Bitmap.Config.RGB_565;
                     bmOptions.inSampleSize = scaleFactor;
                     bmOptions.inPurgeable = true;
 
-                    Bitmap bitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
+                    final Bitmap bitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
 
-                    new FloodFillUtils().floodFill(bitmap, 0,0, 20, 20);
+//                    mImageView.setImageBitmap(bitmap);
+
+                    new FloodFillUtils().floodFill(bitmap, 10,10, 100, 100);
                     mImageView.setImageBitmap(bitmap);
+
 
 
 //                    dlg.setMessage("正在查找");
