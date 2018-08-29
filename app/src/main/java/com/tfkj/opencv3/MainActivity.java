@@ -125,10 +125,16 @@ public class MainActivity extends AppCompatActivity {
 
 //                    mImageView.setImageBitmap(bitmap);
 
-                    new FloodFillUtils().floodFill(bitmap, 10,10, 20, 20);
                     mImageView.setImageBitmap(bitmap);
 
 
+                    mImageView.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            FloodFillUtils.floodFill(bitmap, 10,10, 20, 20);
+                            mImageView.setImageBitmap(bitmap);
+                        }
+                    }, 1000);
 
 //                    dlg.setMessage("正在查找");
 //                    dlg.setCancelable(false);
