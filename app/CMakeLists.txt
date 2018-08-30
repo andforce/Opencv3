@@ -54,6 +54,7 @@ add_library( # Sets the name of the library.
              src/main/cpp/native-lib.cpp
              src/main/cpp/mat_map_cvt.cpp
              src/main/cpp/flood_fill.cpp
+             src/main/cpp/cpp_java_utils.cpp
              )
 
 include_directories(libs/include)
