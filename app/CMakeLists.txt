@@ -42,8 +42,10 @@ set_target_properties( opencv_java3
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
+
+
 add_library( # Sets the name of the library.
-             native-lib
+             flood-fill
 
              # Sets the library as a shared library.
              SHARED
@@ -51,11 +53,26 @@ add_library( # Sets the name of the library.
              # Provides a relative path to your source file(s).
              # Associated headers in the same location as their source
              # file are automatically included.
-             src/main/cpp/native-lib.cpp
              src/main/cpp/mat_map_cvt.cpp
              src/main/cpp/flood_fill.cpp
+             src/main/cpp/native-lib.cpp
              src/main/cpp/cpp_java_utils.cpp
              )
+
+#add_library( # Sets the name of the library.
+#             find-objects
+#
+#             # Sets the library as a shared library.
+#             SHARED
+#
+#             # Provides a relative path to your source file(s).
+#             # Associated headers in the same location as their source
+#             # file are automatically included.
+#             src/main/cpp/mat_map_cvt.cpp
+#             src/main/cpp/flood_fill.cpp
+#             src/main/cpp/native-lib.cpp
+#             src/main/cpp/cpp_java_utils.cpp
+#             )
 
 include_directories(libs/include)
 
@@ -64,7 +81,8 @@ include_directories(libs/include)
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       native-lib
+                       # find-objects
+                       flood-fill
                        opencv_java3
                        # Links the target library to the log library
                        # included in the NDK.

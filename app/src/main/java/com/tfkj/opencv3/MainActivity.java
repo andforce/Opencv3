@@ -26,7 +26,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_OPEN_IMAGE = 1;
 
     static {
-        System.loadLibrary("native-lib");
+//        System.loadLibrary("find-objects");
+        System.loadLibrary("flood-fill");
     }
 
     private ProgressDialog dlg;
