@@ -52,7 +52,9 @@ add_library( # Sets the name of the library.
              # Associated headers in the same location as their source
              # file are automatically included.
              src/main/cpp/native-lib.cpp
-             src/main/cpp/mat_map_cvt.cpp)
+             src/main/cpp/mat_map_cvt.cpp
+             src/main/cpp/flood_fill.cpp
+             )
 
 include_directories(libs/include)
 
