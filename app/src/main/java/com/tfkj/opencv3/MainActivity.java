@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private int mStartY = -1;
 
-    private int value = 20;
+    private int value = 100;
 
     Bitmap floodFillBitmap;
     Bitmap orgBitmap;
@@ -83,7 +83,10 @@ public class MainActivity extends AppCompatActivity {
 
                             //Log.d("ACTION_MOVE", "NEW:" + bitmap + " ORG:" + orgBitmap);
 
-                            FloodFillUtils.floodFillBitmap(bitmap, realPoint[0], realPoint[1], value, value);
+                            FloodFillUtils.floodFill(/*orgBitmap, */bitmap, realPoint[0], realPoint[1], value, value);
+
+                            //Log.d("ACTION_MOVE Count->", "Count: "+ count);
+
                             mImageView.setImageBitmap(bitmap);
 
                         } else {
@@ -115,13 +118,16 @@ public class MainActivity extends AppCompatActivity {
                                 value = 0;
                             }
 
-                            Log.d("ACTION_MOVE", "floodFill" + value + " StartY:" + mStartY);
+                            //Log.d("ACTION_MOVE", "floodFill" + value + " StartY:" + mStartY);
 
                             Bitmap bitmap = orgBitmap.copy(Bitmap.Config.ARGB_8888, true);
 
-                            Log.d("ACTION_MOVE", "NEW:" + bitmap + " ORG:" + orgBitmap);
+                            //Log.d("ACTION_MOVE", "NEW:" + bitmap + " ORG:" + orgBitmap);
 
-                            FloodFillUtils.floodFillBitmap(bitmap, realPoint[0], realPoint[1], value, value);
+                            /*int count = */FloodFillUtils.floodFill(/*orgBitmap,*/ bitmap, realPoint[0], realPoint[1], value, value);
+
+                            //Log.d("ACTION_MOVE Count->", "Count: "+ count);
+
                             mImageView.setImageBitmap(bitmap);
                         }
 

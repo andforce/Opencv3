@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.widget.ImageView;
@@ -22,35 +21,6 @@ public class FloodFillImageView extends ImageView {
 
     public FloodFillImageView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-    }
-
-    public FloodFillImageView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-    }
-
-
-    private int realImgShowWidth, realImgShowHeight;
-
-    private void getImgDisplaySize() {
-        Drawable imgDrawable = this.getDrawable();
-        if (imgDrawable != null) {
-            //获得ImageView中Image的真实宽高，
-            int dw = this.getDrawable().getBounds().width();
-            int dh = this.getDrawable().getBounds().height();
-
-            //获得ImageView中Image的变换矩阵
-            Matrix m = this.getImageMatrix();
-            float[] values = new float[9];
-            m.getValues(values);
-
-            //Image在绘制过程中的变换矩阵，从中获得x和y方向的缩放系数
-            float sx = values[0];
-            float sy = values[4];
-
-            //计算Image在屏幕上实际绘制的宽高
-            realImgShowWidth = (int) (dw * sx);
-            realImgShowHeight = (int) (dh * sy);
-        }
     }
 
     private Rect mRect = new Rect();

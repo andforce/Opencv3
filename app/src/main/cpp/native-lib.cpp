@@ -344,6 +344,12 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
 
 
 
+Mat range(Mat &img) {
+    int m = img.rows;
+    int n = img.cols;
+    Mat temp = img(Range(1,m - 1), Range(1,n -1));
+    return temp;
+}
 
 /**
  * Android Bitmap ARGB
@@ -351,24 +357,29 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
  * flood识别的是BGR
  * 所以要把RGBA-->BGR
  */
-Mat srcRGBA;
-Mat srcBGR;
-Mat resultRGBA;
-extern "C"
-JNIEXPORT jobject JNICALL
-Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, jobject bitmap,
-                                                     jint x, jint y, jint low, jint up) {
 
+Mat srcBGR;
+Mat maskBGR;
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, jobject bitmap,
+                                                     jobject maskBitmap, jint x, jint y, jint low,
+                                                     jint up) {
+
+    LOGD("start()");
     // 把Bitmap转成Mat
+    Mat srcRGBA;
     BitmapToMat(env, bitmap, srcRGBA, CV_8UC4);
+    Mat maskRGBA;
+//    BitmapToMat(env, maskBitmap, maskRGBA, CV_8UC4);
 
     //转换成BGR
     cvtColor(srcRGBA,srcBGR,CV_RGBA2BGR);
+//    cvtColor(maskRGBA,maskBGR,CV_RGBA2BGR);
 
 
     int lowDifference = FILLMODE == 0 ? 0 : low;
     int UpDifference = FILLMODE == 0 ? 0 : up;
-    int flags = g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
 
     int b = (unsigned) 0;
     int g = (unsigned) 0;
@@ -378,20 +389,33 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
     Rect ccomp;
     Scalar newVal = Scalar(b, g, r);
     Point mSeedPoint = Point(x, y);
-    int area = floodFill(srcBGR, mSeedPoint, newVal, &ccomp,
+//    int area = floodFill(srcBGR, mSeedPoint, newVal, &ccomp,
+//                     Scalar(lowDifference, lowDifference, lowDifference),
+//                     Scalar(UpDifference, UpDifference, UpDifference), flags);
+
+    maskBGR.create(srcBGR.rows + 2, srcBGR.cols + 2, CV_8UC1);
+    //threshold(maskBGR, maskBGR, 1, 128, THRESH_BINARY);
+    int flags = 8 | FLOODFILL_MASK_ONLY | FLOODFILL_FIXED_RANGE | (g_nNewMaskVal << 8) ;
+    //g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
+    int area = floodFill(srcBGR, maskBGR, mSeedPoint, newVal, &ccomp,
                      Scalar(lowDifference, lowDifference, lowDifference),
                      Scalar(UpDifference, UpDifference, UpDifference), flags);
 
-    string path = "/storage/emulated/0/Download/srcBGR.jpg";
-    imwrite(path,srcBGR);
+
+
+    string path = "/storage/emulated/0/Download/maskBGR.jpg";
+    imwrite(path,maskBGR);
 
     LOGD("有多少个点被重画-----------------%d", area);
 
     // 转换成RGBA
-    cvtColor(srcBGR,resultRGBA,CV_BGR2RGBA);
+//    cvtColor(maskBGR,maskRGBA,CV_BGR2RGBA);
+    cvtColor(maskBGR,maskRGBA, CV_GRAY2RGBA);
+    LOGD("cvtColor()");
 
     // 转成Bitmap
-    MatToBitmap(env, resultRGBA, bitmap, CV_8UC4);
+    Mat adjust = range(maskRGBA);
+    MatToBitmap(env, adjust, maskBitmap, CV_8UC4);
 
-    return bitmap;
+    return area;
 }
