@@ -55,8 +55,6 @@ add_library( # Sets the name of the library.
              # file are automatically included.
              src/main/cpp/mat_map_cvt.cpp
              src/main/cpp/flood_fill.cpp
-             src/main/cpp/native-lib.cpp
-             src/main/cpp/cpp_java_utils.cpp
              )
 
 #add_library( # Sets the name of the library.
@@ -68,9 +66,7 @@ add_library( # Sets the name of the library.
 #             # Provides a relative path to your source file(s).
 #             # Associated headers in the same location as their source
 #             # file are automatically included.
-#             src/main/cpp/mat_map_cvt.cpp
-#             src/main/cpp/flood_fill.cpp
-#             src/main/cpp/native-lib.cpp
+#             src/main/cpp/find_objects.cpp
 #             src/main/cpp/cpp_java_utils.cpp
 #             )
 
