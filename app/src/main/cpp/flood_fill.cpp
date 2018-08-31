@@ -173,7 +173,13 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
             Mat resultMat;
             addAlpha(srcBGR, resultMat, alpha);
             saveMat2File(resultMat, "mergedResultRGBA.png");
-            MatToBitmap2(env, resultMat, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
+
+            Mat resultMatRGBA;
+            cvtColor(resultMat,resultMatRGBA,CV_BGRA2RGBA);
+
+            saveMat2File(resultMat, "resultMatRGBA.png");
+
+            MatToBitmap2(env, resultMatRGBA, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
         }
 
 
