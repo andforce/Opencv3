@@ -32,11 +32,11 @@ void saveMat2File(Mat &src, string file) {
  * @param mask
  * @return
  */
-cv::Mat createAlphaFromMask(cv::Mat &mask) {
-    cv::Mat alpha = cv::Mat::zeros(mask.rows, mask.cols, CV_8UC1);
-    //cv::Mat gray = cv::Mat::zeros(mask.rows, mask.cols, CV_8UC1);
+Mat createAlphaFromMask(Mat &mask) {
+    Mat alpha = Mat::zeros(mask.rows, mask.cols, CV_8UC1);
+    //Mat gray = Mat::zeros(mask.rows, mask.cols, CV_8UC1);
 
-    //cv::cvtColor(mask, gray, cv::COLOR_RGB2GRAY);
+    //cvtColor(mask, gray, COLOR_RGB2GRAY);
 
     for (int i = 0; i < mask.rows; i++) {
         for (int j = 0; j < mask.cols; j++) {
@@ -47,19 +47,19 @@ cv::Mat createAlphaFromMask(cv::Mat &mask) {
     return alpha;
 }
 
-int addAlpha(cv::Mat &src, cv::Mat &dst, cv::Mat &alpha) {
+int addAlpha(Mat &src, Mat &dst, Mat &alpha) {
     if (src.channels() == 4) {
         return -1;
     } else if (src.channels() == 1) {
-        cv::cvtColor(src, src, cv::COLOR_GRAY2RGB);
+        cvtColor(src, src, COLOR_GRAY2RGB);
     }
 
-    dst = cv::Mat(src.rows, src.cols, CV_8UC4);
+    dst = Mat(src.rows, src.cols, CV_8UC4);
 
-    std::vector<cv::Mat> srcChannels;
-    std::vector<cv::Mat> dstChannels;
+    vector<Mat> srcChannels;
+    vector<Mat> dstChannels;
     //分离通道
-    cv::split(src, srcChannels);
+    split(src, srcChannels);
 
     dstChannels.push_back(srcChannels[0]);
     dstChannels.push_back(srcChannels[1]);
@@ -67,9 +67,24 @@ int addAlpha(cv::Mat &src, cv::Mat &dst, cv::Mat &alpha) {
     //添加透明度通道
     dstChannels.push_back(alpha);
     //合并通道
-    cv::merge(dstChannels, dst);
+    merge(dstChannels, dst);
 
     return 0;
+}
+
+Mat removeChannel(Mat &src, int which){
+    vector<Mat> channels;
+    split(src, channels);
+
+    for (int i = 0; i < channels[which].rows; i++) {
+        for (int j = 0; j < channels[which].cols; j++) {
+            channels[which].at<uchar>(i, j) = 0;
+        }
+    }
+
+    Mat dst;
+    merge(channels, dst);
+    return dst;
 }
 
 
