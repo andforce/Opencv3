@@ -14,7 +14,10 @@
 #include <android/bitmap.h>
 
 #define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, "error", __VA_ARGS__))
-#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "debug", __VA_ARGS__))
+//#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "debug", __VA_ARGS__))
+
+#define TAG "FIND_OBJ"
+#define LOGD(...) __android_log_print(ANDROID_LOG_ERROR,TAG ,__VA_ARGS__)
 
 using namespace cv;
 using namespace std;
@@ -34,7 +37,7 @@ void BitmapToMat2(JNIEnv *env, jobject &bitmap, Mat &mat, jboolean needUnPremult
         dst.create(info.height, info.width, _type);
 
         if (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888) {
-            LOGD("nBitmapToMat: RGBA_8888");
+            LOGD("BitmapToMat2 -> nBitmapToMat: RGBA_8888");
             Mat tmp(info.height, info.width, _type, pixels);
             if (needUnPremultiplyAlpha) {
                 cvtColor(tmp, dst, COLOR_mRGBA2RGBA);
@@ -69,8 +72,7 @@ void BitmapToMat(JNIEnv *env, jobject &bitmap, Mat &mat, int _type) {
     BitmapToMat2(env, bitmap, mat, static_cast<jboolean>(false), _type);
 }
 
-void
-MatToBitmap2(JNIEnv *env, Mat &mat, jobject &bitmap, jboolean needPremultiplyAlpha, int _type) {
+void MatToBitmap2(JNIEnv *env, Mat &mat, jobject &bitmap, jboolean needPremultiplyAlpha, int _type) {
     AndroidBitmapInfo info;
     void *pixels = 0;
     Mat &src = mat;

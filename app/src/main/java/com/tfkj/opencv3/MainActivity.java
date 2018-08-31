@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
                             int count =FloodFillUtils.floodFillBitmap(orgBitmap, maskBitmap, resultBitmap, realPoint[0], realPoint[1], value, value);
 
-                            Log.d("ACTION_MOVE Count->", "Count: "+ count+ " maskBitmap:" + maskBitmap);
+//                            Log.d("ACTION_MOVE Count->", "Count: "+ count+ " maskBitmap:" + maskBitmap);
 
 //                            mSrcImageView.setImageBitmap(maskBitmap);
                             mMaskImageView.setImageBitmap(maskBitmap);
