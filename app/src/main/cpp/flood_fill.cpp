@@ -146,6 +146,14 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
         addAlpha(srcBGR, resultMat, alpha);
 
         MatToBitmap(env, resultMat, resultBitmap, CV_8UC4);
+
+        // 把mask转成Bitmap返回到Java层
+
+        cvtColor(maskGray, maskRGBA, CV_GRAY2RGBA);
+
+        sizeCorrect = range(maskRGBA);
+
+        MatToBitmap(env, sizeCorrect, maskBitmap, CV_8UC4);
     } else {
         // DEBUG
         saveMat2File(maskGray, "maskGray.jpg");
