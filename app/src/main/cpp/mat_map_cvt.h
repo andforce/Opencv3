@@ -31,7 +31,6 @@ void BitmapToMat2(JNIEnv *env, jobject &bitmap, Mat &mat, jboolean needUnPremult
 
 void BitmapToMat(JNIEnv *env, jobject &bitmap, Mat &mat, int _type);
 
-void
-MatToBitmap2(JNIEnv *env, Mat &mat, jobject &bitmap, jboolean needPremultiplyAlpha, int _type);
+void MatToBitmap2(JNIEnv *env, Mat &mat, jobject &bitmap, jboolean needPremultiplyAlpha, int _type);
 
-void MatToBitmap(JNIEnv *env, Mat &mat, jobject &bitmap, int _type);
+//void MatToBitmap(JNIEnv *env, Mat &mat, jobject &bitmap, int _type);

@@ -139,21 +139,52 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
                          Scalar(UpDifference, UpDifference, UpDifference), flags);
 
     if (true){
-        Mat sizeCorrect = range(maskGray);
-        Mat alpha = createAlphaFromMask(sizeCorrect);
 
-        Mat resultMat;
-        addAlpha(srcBGR, resultMat, alpha);
+        Mat sizeCorrect;
 
-        MatToBitmap(env, resultMat, resultBitmap, CV_8UC4);
+        if (false){
+            sizeCorrect = range(maskGray);
+
+            Mat resultRGBA;
+            srcRGBA.copyTo(resultRGBA);
+
+            vector<Mat> channels;
+            split(resultRGBA, channels);
+
+            for (int i = 0; i < channels[3].rows; i++) {
+                for (int j = 0; j < channels[3].cols; j++) {
+                    if (i <= channels[3].rows / 2){
+                        channels[3].at<uchar>(i, j) = 0;
+                    } else{
+                        channels[3].at<uchar>(i, j) = 255;
+                    }
+                }
+            }
+
+            Mat mergedResultRGBA;
+            merge(channels, mergedResultRGBA);
+
+            saveMat2File(mergedResultRGBA, "mergedResultRGBA.png");
+
+            MatToBitmap2(env, mergedResultRGBA, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
+        } else {
+            sizeCorrect = range(maskGray);
+            Mat alpha = createAlphaFromMask(sizeCorrect);
+            Mat resultMat;
+            addAlpha(srcBGR, resultMat, alpha);
+            saveMat2File(resultMat, "mergedResultRGBA.png");
+            MatToBitmap2(env, resultMat, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
+        }
+
+
+
 
         // 把mask转成Bitmap返回到Java层
-
         cvtColor(maskGray, maskRGBA, CV_GRAY2RGBA);
 
         sizeCorrect = range(maskRGBA);
 
-        MatToBitmap(env, sizeCorrect, maskBitmap, CV_8UC4);
+        MatToBitmap2(env, sizeCorrect, maskBitmap, static_cast<jboolean>(false), CV_8UC4);
     } else {
         // DEBUG
         saveMat2File(maskGray, "maskGray.jpg");
@@ -186,7 +217,7 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
 ////
 ////    MatToBitmap(env, result, maskBitmap, CV_8UC4);
 
-        MatToBitmap(env, adjust, maskBitmap, CV_8UC4);
+        MatToBitmap2(env, adjust, maskBitmap, static_cast<jboolean>(true), CV_8UC4);
     }
     return area;
 }
@@ -281,7 +312,7 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
     Mat show;
     cvtColor(dst, dst, CV_BGR2RGBA);
 
-    MatToBitmap(env, dst, bitmap, CV_8UC4);
+    MatToBitmap2(env, dst, bitmap, static_cast<jboolean>(true), CV_8UC4);
 
 //    Mat mat_image_src ;
 //    BitmapToMat(env,bitmap,mat_image_src);//图片转化成mat
