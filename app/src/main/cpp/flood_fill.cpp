@@ -162,10 +162,10 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmapWithMask(JNIEnv *env, jclass
     addAlpha(srcBGR, resultMat, alpha);
     saveMat2File(resultMat, "mergedResultRGBA.png");
 
-    Mat resultMatRGBA;
-    cvtColor(resultMat,resultMatRGBA,COLOR_BGRA2RGBA);
-
-    saveMat2File(resultMatRGBA, "resultMatRGBA.png");
+//    Mat resultMatRGBA;
+//    cvtColor(resultMat,resultMatRGBA,COLOR_BGRA2RGBA);
+//
+//    saveMat2File(resultMatRGBA, "resultMatRGBA.png");
 
     //resultMatRGBA = removeChannel(resultMatRGBA, 3);
     //MatToBitmap2(env, resultMatRGBA, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
@@ -179,9 +179,9 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmapWithMask(JNIEnv *env, jclass
     MatToBitmap2(env, sizeCorrect, maskBitmap, static_cast<jboolean>(false), CV_8UC4);
 
     // 返回int[]
-    int size = resultMatRGBA.rows * resultMatRGBA.cols;
+    int size = resultMat.rows * resultMat.cols;
     jintArray result = env->NewIntArray(size);
-    env->SetIntArrayRegion(result, 0, size, (jint *)resultMatRGBA.data);
+    env->SetIntArrayRegion(result, 0, size, (jint *)resultMat.data);
     //env->ReleaseIntArrayElements(buf_, buf, 0);
     return result;
 }
