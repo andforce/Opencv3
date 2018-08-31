@@ -1,23 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:orientation="vertical">
+
+    <ImageView
+        android:layout_weight="1"
+        android:background="@android:color/holo_blue_bright"
+        android:id="@+id/maskImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:ignore="MissingConstraints" />
+
+    <ImageView
+        android:layout_weight="1"
+        android:background="@android:color/holo_green_dark"
+        android:id="@+id/resultImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:ignore="MissingConstraints" />
+
 
     <com.tfkj.opencv3.view.FloodFillImageView
+        android:layout_weight="1"
         android:background="@android:color/darker_gray"
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="0dp" />
+        tools:ignore="MissingConstraints" />
 
     <Button
+        android:visibility="visible"
         android:id="@+id/choose_image"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="选图"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -29,6 +47,7 @@
 
 
     <Button
+        android:visibility="gone"
         android:id="@+id/show_result"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -40,4 +59,4 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.965" />
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>

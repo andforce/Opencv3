@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.tfkj.opencv3.view.FloodFillImageView;
@@ -39,8 +40,12 @@ public class MainActivity extends AppCompatActivity {
     Bitmap floodFillBitmap;
     Bitmap orgBitmap;
     Bitmap maskBitmap;
+    Bitmap resultBitmap;
 
-    FloodFillImageView mImageView;
+    FloodFillImageView mSrcImageView;
+    ImageView mMaskImageView;
+    ImageView mResultImageView;
+
     ArrayList<String> mResult;
 
     int[] realPoint;
@@ -54,31 +59,35 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mImageView = findViewById(R.id.imageView);
-        mImageView.post(new Runnable() {
+        mMaskImageView = findViewById(R.id.maskImageView);
+
+        mResultImageView = findViewById(R.id.resultImageView);
+
+        mSrcImageView = findViewById(R.id.imageView);
+        mSrcImageView.post(new Runnable() {
             @Override
             public void run() {
-                mStartY = mImageView.getMeasuredHeight() / 2;
+                mStartY = mSrcImageView.getMeasuredHeight() / 2;
             }
         });
 
-        mImageView.setOnTouchListener(new View.OnTouchListener() {
+        mSrcImageView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()){
                     case MotionEvent.ACTION_DOWN:{
                         mStartY = (int) event.getY();
 
-                        Rect rectDis = mImageView.getImageDisplayRect();
+                        Rect rectDis = mSrcImageView.getImageDisplayRect();
 
-                        Matrix matrix = mImageView.getImageMatrix();
+                        Matrix matrix = mSrcImageView.getImageMatrix();
 
                         Log.d("ACTION_MOVE realSize->", "DiaplyRect:" + rectDis + " Matrix:" + matrix);
 
                         if (rectDis.contains((int) event.getX(), (int) event.getY())){
 
 
-                            realPoint = mImageView.pointOnReadImage((int) event.getX(), (int) event.getY());
+                            realPoint = mSrcImageView.pointOnReadImage((int) event.getX(), (int) event.getY());
 
                             Log.d("ACTION_MOVE imageSize->", "点到了 " + "X:" +event.getX()  + " Y:" + event.getY() + " realX:" + realPoint[0] + " realY:" + realPoint[1]);
 
@@ -88,7 +97,11 @@ public class MainActivity extends AppCompatActivity {
 
                             //Log.d("ACTION_MOVE", "NEW:" + maskBitmap + " ORG:" + orgBitmap);
 
-                            FloodFillUtils.floodFillBitmap(orgBitmap, maskBitmap, realPoint[0], realPoint[1], value, value);
+                            if (resultBitmap == null){
+                                resultBitmap = Bitmap.createBitmap(orgBitmap.getWidth(), orgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+                            }
+
+                            FloodFillUtils.floodFillBitmap(orgBitmap, maskBitmap, resultBitmap, realPoint[0], realPoint[1], value, value);
 
                             int[] maskPixels = new int[maskBitmap.getWidth() * maskBitmap.getHeight()];
                             maskBitmap.getPixels(maskPixels, 0, maskBitmap.getWidth(), 0, 0, maskBitmap.getWidth(), maskBitmap.getHeight());
@@ -98,11 +111,14 @@ public class MainActivity extends AppCompatActivity {
 
                             //Log.d("ACTION_MOVE Count->", "Count: "+ count);
 
-                            mImageView.setImageBitmap(maskBitmap);
+//                            mSrcImageView.setImageBitmap(maskBitmap);
+                            mMaskImageView.setImageBitmap(maskBitmap);
+                            mResultImageView.setImageBitmap(resultBitmap);
 
                         } else {
                             Log.d("ACTION_MOVE imageSize->", "没点到 " + "X:" +event.getX()  + " Y:" + event.getY() + " display:" + rectDis);
-                            mImageView.setImageBitmap(orgBitmap);
+//                            mSrcImageView.setImageBitmap(orgBitmap);
+                            mMaskImageView.setImageBitmap(orgBitmap);
                         }
 
                         break;
@@ -136,13 +152,20 @@ public class MainActivity extends AppCompatActivity {
                                 maskBitmap = Bitmap.createBitmap(orgBitmap.getWidth(), orgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
                             }
 
+                            if (resultBitmap == null){
+                                resultBitmap = Bitmap.createBitmap(orgBitmap.getWidth(), orgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+                            }
+
                             //Log.d("ACTION_MOVE", "NEW:" + maskBitmap + " ORG:" + orgBitmap);
 
-                            int count =FloodFillUtils.floodFillBitmap(orgBitmap, maskBitmap, realPoint[0], realPoint[1], value, value);
+                            int count =FloodFillUtils.floodFillBitmap(orgBitmap, maskBitmap, resultBitmap, realPoint[0], realPoint[1], value, value);
 
                             Log.d("ACTION_MOVE Count->", "Count: "+ count+ " maskBitmap:" + maskBitmap);
 
-                            mImageView.setImageBitmap(maskBitmap);
+//                            mSrcImageView.setImageBitmap(maskBitmap);
+                            mMaskImageView.setImageBitmap(maskBitmap);
+
+                            mResultImageView.setImageBitmap(resultBitmap);
                         }
 
                         Log.d("ACTION_MOVE", ">>>>>> floodFill value:" + value + " StartY:" + mStartY + " Y:" + event.getY());
@@ -191,8 +214,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void setPic(String pic) {
-        int targetW = mImageView.getWidth();
-        int targetH = mImageView.getHeight();
+        int targetW = mSrcImageView.getWidth();
+        int targetH = mSrcImageView.getHeight();
 
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
         bmOptions.inJustDecodeBounds = true;
@@ -206,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         bmOptions.inSampleSize = scaleFactor;
         bmOptions.inPurgeable = true;
 
-        mImageView.setImageBitmap(BitmapFactory.decodeFile(pic, bmOptions));
+        mSrcImageView.setImageBitmap(BitmapFactory.decodeFile(pic, bmOptions));
     }
 
     @Override
@@ -226,8 +249,8 @@ public class MainActivity extends AppCompatActivity {
                     cursor.close();
 //                    setPic(imagePath);
 
-                    int targetW = mImageView.getWidth();
-                    int targetH = mImageView.getHeight();
+                    int targetW = mSrcImageView.getWidth();
+                    int targetH = mSrcImageView.getHeight();
 
                     BitmapFactory.Options bmOptions = new BitmapFactory.Options();
                     bmOptions.inJustDecodeBounds = true;
@@ -251,21 +274,21 @@ public class MainActivity extends AppCompatActivity {
 
                     floodFillBitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
 
-                    mImageView.setImageBitmap(orgBitmap);
+                    mSrcImageView.setImageBitmap(orgBitmap);
 
 //                    Bitmap bitmap1 = FloodFillUtils.floodFillBitmap(maskBitmap, 10, 10, 20, 20);
 //
-//                    mImageView.setImageBitmap(bitmap1);
+//                    mSrcImageView.setImageBitmap(bitmap1);
 
-//                    mImageView.postDelayed(new Runnable() {
+//                    mSrcImageView.postDelayed(new Runnable() {
 //                        @Override
 //                        public void run() {
 //                            if (false) {
 //                                FloodFillUtils.floodFill(floodFillBitmap, 10, 10, 20, 20);
-//                                mImageView.setImageBitmap(floodFillBitmap);
+//                                mSrcImageView.setImageBitmap(floodFillBitmap);
 //                            } else {
 //                                Bitmap bitmap1 = FloodFillUtils.floodFillBitmap(floodFillBitmap, 10, 10, 20, 20);
-//                                mImageView.setImageBitmap(floodFillBitmap);
+//                                mSrcImageView.setImageBitmap(floodFillBitmap);
 //                            }
 //                        }
 //                    }, 1000);

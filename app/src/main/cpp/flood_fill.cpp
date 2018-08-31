@@ -27,6 +27,51 @@ void saveMat2File(Mat &src, string file) {
     imwrite(path, src);
 }
 
+/**
+ * mask 需要是CV_8UC1
+ * @param mask
+ * @return
+ */
+cv::Mat createAlphaFromMask(cv::Mat &mask) {
+    cv::Mat alpha = cv::Mat::zeros(mask.rows, mask.cols, CV_8UC1);
+    //cv::Mat gray = cv::Mat::zeros(mask.rows, mask.cols, CV_8UC1);
+
+    //cv::cvtColor(mask, gray, cv::COLOR_RGB2GRAY);
+
+    for (int i = 0; i < mask.rows; i++) {
+        for (int j = 0; j < mask.cols; j++) {
+            alpha.at<uchar>(i, j) = static_cast<uchar>(255 - mask.at<uchar>(i, j));
+        }
+    }
+
+    return alpha;
+}
+
+int addAlpha(cv::Mat &src, cv::Mat &dst, cv::Mat &alpha) {
+    if (src.channels() == 4) {
+        return -1;
+    } else if (src.channels() == 1) {
+        cv::cvtColor(src, src, cv::COLOR_GRAY2RGB);
+    }
+
+    dst = cv::Mat(src.rows, src.cols, CV_8UC4);
+
+    std::vector<cv::Mat> srcChannels;
+    std::vector<cv::Mat> dstChannels;
+    //分离通道
+    cv::split(src, srcChannels);
+
+    dstChannels.push_back(srcChannels[0]);
+    dstChannels.push_back(srcChannels[1]);
+    dstChannels.push_back(srcChannels[2]);
+    //添加透明度通道
+    dstChannels.push_back(alpha);
+    //合并通道
+    cv::merge(dstChannels, dst);
+
+    return 0;
+}
+
 
 /**
  * Android Bitmap ARGB
@@ -36,14 +81,14 @@ void saveMat2File(Mat &src, string file) {
  */
 
 Mat srcBGR;
-Mat maskBGR;
+Mat maskGray;
 int FILLMODE = 1;
 int g_nNewMaskVal = 255;
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, jobject bitmap,
-                                                     jobject maskBitmap, jint x, jint y, jint low,
+                                                     jobject maskBitmap, jobject  resultBitmap, jint x, jint y, jint low,
                                                      jint up) {
 
     LOGD("start()");
@@ -55,7 +100,7 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
 
     //转换成BGR
     cvtColor(srcRGBA, srcBGR, CV_RGBA2BGR);
-//    cvtColor(maskRGBA,maskBGR,CV_RGBA2BGR);
+//    cvtColor(maskRGBA,maskGray,CV_RGBA2BGR);
 
 
     int lowDifference = FILLMODE == 0 ? 0 : low;
@@ -73,10 +118,10 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
 //                     Scalar(lowDifference, lowDifference, lowDifference),
 //                     Scalar(UpDifference, UpDifference, UpDifference), flags);
 
-    maskBGR.create(srcBGR.rows + 2, srcBGR.cols + 2, CV_8UC1);
-    maskBGR = Scalar::all(0);
+    maskGray.create(srcBGR.rows + 2, srcBGR.cols + 2, CV_8UC1);
+    maskGray = Scalar::all(0);
 
-    //threshold(maskBGR, maskBGR, 1, 128, THRESH_BINARY);
+    //threshold(maskGray, maskGray, 1, 128, THRESH_BINARY);
     int flags = 4 | FLOODFILL_MASK_ONLY | FLOODFILL_FIXED_RANGE | (g_nNewMaskVal << 8);
     //g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
 
@@ -89,22 +134,31 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
     //    loDiff：         最大的低亮度之间的差异。
     //    upDiff：         最大的高亮度之间的差异。
     //    flag：           选择算法连接方式。
-    int area = floodFill(srcBGR, maskBGR, mSeedPoint, newVal, &fillRect,
+    int area = floodFill(srcBGR, maskGray, mSeedPoint, newVal, &fillRect,
                          Scalar(lowDifference, lowDifference, lowDifference),
                          Scalar(UpDifference, UpDifference, UpDifference), flags);
 
-    // DEBUG
-    saveMat2File(maskBGR, "maskBGR.jpg");
+    if (true){
+        Mat sizeCorrect = range(maskGray);
+        Mat alpha = createAlphaFromMask(sizeCorrect);
 
-    LOGD("flood fill count is: %d", area);
+        Mat resultMat;
+        addAlpha(srcBGR, resultMat, alpha);
 
-    // 转换成RGBA
-    // cvtColor(maskBGR,maskRGBA,CV_BGR2RGBA);
-    cvtColor(maskBGR, maskRGBA, CV_GRAY2RGBA);
-    LOGD("cvtColor()");
+        MatToBitmap(env, resultMat, resultBitmap, CV_8UC4);
+    } else {
+        // DEBUG
+        saveMat2File(maskGray, "maskGray.jpg");
 
-    // 转成Bitmap
-    Mat adjust = range(maskRGBA);
+        LOGD("flood fill count is: %d", area);
+
+        // 转换成RGBA
+        // cvtColor(maskGray,maskRGBA,CV_BGR2RGBA);
+        cvtColor(maskGray, maskRGBA, CV_GRAY2RGBA);
+        LOGD("cvtColor()");
+
+        // 转成Bitmap
+        Mat adjust = range(maskRGBA);
 
 //    // 反色操作
 //    bitwise_not(adjust,adjust);
@@ -124,8 +178,8 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
 ////
 ////    MatToBitmap(env, result, maskBitmap, CV_8UC4);
 
-    MatToBitmap(env, adjust, maskBitmap, CV_8UC4);
-
+        MatToBitmap(env, adjust, maskBitmap, CV_8UC4);
+    }
     return area;
 }
 
