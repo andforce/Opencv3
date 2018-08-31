@@ -17,9 +17,16 @@ using namespace std;
 Mat range(Mat &img) {
     int m = img.rows;
     int n = img.cols;
-    Mat temp = img(Range(1,m - 1), Range(1,n -1));
+    Mat temp = img(Range(1, m - 1), Range(1, n - 1));
     return temp;
 }
+
+
+void saveMat2File(Mat &src, string file) {
+    string path = "/storage/emulated/0/Download/" + file;
+    imwrite(path, src);
+}
+
 
 /**
  * Android Bitmap ARGB
@@ -47,7 +54,7 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
 //    BitmapToMat(env, maskBitmap, maskRGBA, CV_8UC4);
 
     //转换成BGR
-    cvtColor(srcRGBA,srcBGR,CV_RGBA2BGR);
+    cvtColor(srcRGBA, srcBGR, CV_RGBA2BGR);
 //    cvtColor(maskRGBA,maskBGR,CV_RGBA2BGR);
 
 
@@ -59,35 +66,64 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
     int r = (unsigned) 255;
 
 
-    Rect ccomp;
+    Rect fillRect;
     Scalar newVal = Scalar(b, g, r);
     Point mSeedPoint = Point(x, y);
-//    int area = floodFill(srcBGR, mSeedPoint, newVal, &ccomp,
+//    int area = floodFill(srcBGR, mSeedPoint, newVal, &fillRect,
 //                     Scalar(lowDifference, lowDifference, lowDifference),
 //                     Scalar(UpDifference, UpDifference, UpDifference), flags);
 
     maskBGR.create(srcBGR.rows + 2, srcBGR.cols + 2, CV_8UC1);
+    maskBGR = Scalar::all(0);
+
     //threshold(maskBGR, maskBGR, 1, 128, THRESH_BINARY);
-    int flags = 8 | FLOODFILL_MASK_ONLY | FLOODFILL_FIXED_RANGE | (g_nNewMaskVal << 8) ;
+    int flags = 4 | FLOODFILL_MASK_ONLY | FLOODFILL_FIXED_RANGE | (g_nNewMaskVal << 8);
     //g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
-    int area = floodFill(srcBGR, maskBGR, mSeedPoint, newVal, &ccomp,
+
+
+    //    InputOutputArray:输入和输出图像。
+    //    mask:            输入的掩码图像。
+    //    seedPoint：      算法开始处理的开始位置。
+    //    newVal：         图像中所有被算法选中的点，都用这个数值来填充。
+    //    rect:            最小包围矩阵。
+    //    loDiff：         最大的低亮度之间的差异。
+    //    upDiff：         最大的高亮度之间的差异。
+    //    flag：           选择算法连接方式。
+    int area = floodFill(srcBGR, maskBGR, mSeedPoint, newVal, &fillRect,
                          Scalar(lowDifference, lowDifference, lowDifference),
                          Scalar(UpDifference, UpDifference, UpDifference), flags);
 
+    // DEBUG
+    saveMat2File(maskBGR, "maskBGR.jpg");
 
-
-    string path = "/storage/emulated/0/Download/maskBGR.jpg";
-    imwrite(path,maskBGR);
-
-    LOGD("有多少个点被重画-----------------%d", area);
+    LOGD("flood fill count is: %d", area);
 
     // 转换成RGBA
-//    cvtColor(maskBGR,maskRGBA,CV_BGR2RGBA);
-    cvtColor(maskBGR,maskRGBA, CV_GRAY2RGBA);
+    // cvtColor(maskBGR,maskRGBA,CV_BGR2RGBA);
+    cvtColor(maskBGR, maskRGBA, CV_GRAY2RGBA);
     LOGD("cvtColor()");
 
     // 转成Bitmap
     Mat adjust = range(maskRGBA);
+
+//    // 反色操作
+//    bitwise_not(adjust,adjust);
+//
+//    Mat inversedMat = 255 - adjust;
+//
+//    path = "/storage/emulated/0/Download/fanse.jpg";
+//    imwrite(path,inversedMat);
+//
+////    bitwise_not(adjust, srcRGBA);
+//
+//    path = "/storage/emulated/0/Download/src1.jpg";
+//    imwrite(path,inversedMat);
+//
+////    Mat result;
+////    srcRGBA.copyTo(result, inversedMat);
+////
+////    MatToBitmap(env, result, maskBitmap, CV_8UC4);
+
     MatToBitmap(env, adjust, maskBitmap, CV_8UC4);
 
     return area;
@@ -111,14 +147,14 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
     Mat bgr;
 
     //转换成BGRA
-    cvtColor(srcMat,bgra,CV_RGBA2BGRA);
+    cvtColor(srcMat, bgra, CV_RGBA2BGRA);
     //转换成BGR
-    cvtColor(srcMat,bgr,CV_RGBA2BGR);
+    cvtColor(srcMat, bgr, CV_RGBA2BGR);
 
     srcMat = bgr;
 
     string path = "/storage/emulated/0/Download/src1.jpg";
-    imwrite(path,srcMat);
+    imwrite(path, srcMat);
 
 //    MatToBitmap(env, srcMat, bitmap, CV_8UC3);
 //
@@ -130,7 +166,7 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
 
 
     string dstPath = "/storage/emulated/0/Download/dst.jpg";
-    imwrite(dstPath,dstMat);
+    imwrite(dstPath, dstMat);
 
     maskMat.create(srcMat.rows + 2, srcMat.cols + 2, CV_8UC1);
 
@@ -140,8 +176,6 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
 
     int lowDifference = FILLMODE == 0 ? 0 : low;
     int UpDifference = FILLMODE == 0 ? 0 : up;
-    int flags =
-            g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
 
 //    int b = (unsigned) theRNG() & 255;
 //    int g = (unsigned) theRNG() & 255;
@@ -155,6 +189,11 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
     Rect ccomp;
     Scalar newVal = Scalar(b, g, r);
     Mat dst = dstMat;//目标图的赋值
+
+    //int flags = g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
+
+    int flags = 4 | FLOODFILL_FIXED_RANGE | (g_nNewMaskVal << 8);
+
     int area;
     if (g_bUseMask) {
 
@@ -172,13 +211,13 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
                          Scalar(UpDifference, UpDifference, UpDifference), flags);
 
         string path = "/storage/emulated/0/Download/555.jpg";
-        imwrite(path,dst);
+        imwrite(path, dst);
     }
 
     LOGD("有多少个点被重画-----------------%d", area);
 
     Mat show;
-    cvtColor(dst,dst,CV_BGR2RGBA);
+    cvtColor(dst, dst, CV_BGR2RGBA);
 
     MatToBitmap(env, dst, bitmap, CV_8UC4);
 

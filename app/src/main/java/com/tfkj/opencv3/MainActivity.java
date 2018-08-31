@@ -34,15 +34,19 @@ public class MainActivity extends AppCompatActivity {
 
     private int mStartY = -1;
 
-    private int value = 100;
+    private int value = 50;
 
     Bitmap floodFillBitmap;
     Bitmap orgBitmap;
+    Bitmap maskBitmap;
 
     FloodFillImageView mImageView;
     ArrayList<String> mResult;
 
     int[] realPoint;
+
+    int[] orgPixels;
+    int[] changedPixels;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -78,17 +82,23 @@ public class MainActivity extends AppCompatActivity {
 
                             Log.d("ACTION_MOVE imageSize->", "点到了 " + "X:" +event.getX()  + " Y:" + event.getY() + " realX:" + realPoint[0] + " realY:" + realPoint[1]);
 
-                            Bitmap bitmap = orgBitmap.copy(Bitmap.Config.ARGB_8888, true);
+                            Bitmap maskBitmap = orgBitmap.copy(Bitmap.Config.ARGB_8888, true);
 
-                            Log.d("ACTION_MOVE imageSize->", "Bitmap W:" + bitmap.getWidth() + " Bitmap H:" + bitmap.getHeight());
+                            Log.d("ACTION_MOVE imageSize->", "Bitmap W:" + maskBitmap.getWidth() + " Bitmap H:" + maskBitmap.getHeight());
 
-                            //Log.d("ACTION_MOVE", "NEW:" + bitmap + " ORG:" + orgBitmap);
+                            //Log.d("ACTION_MOVE", "NEW:" + maskBitmap + " ORG:" + orgBitmap);
 
-                            FloodFillUtils.floodFill(/*orgBitmap, */bitmap, realPoint[0], realPoint[1], value, value);
+                            FloodFillUtils.floodFillBitmap(orgBitmap, maskBitmap, realPoint[0], realPoint[1], value, value);
+
+                            int[] maskPixels = new int[maskBitmap.getWidth() * maskBitmap.getHeight()];
+                            maskBitmap.getPixels(maskPixels, 0, maskBitmap.getWidth(), 0, 0, maskBitmap.getWidth(), maskBitmap.getHeight());
+//                            for (int i = 0; i < maskPixels.length; i++){
+//                                Log.d("ACTION_MOVE maskPixels", "Pix: "+ maskPixels[i]);
+//                            }
 
                             //Log.d("ACTION_MOVE Count->", "Count: "+ count);
 
-                            mImageView.setImageBitmap(bitmap);
+                            mImageView.setImageBitmap(maskBitmap);
 
                         } else {
                             Log.d("ACTION_MOVE imageSize->", "没点到 " + "X:" +event.getX()  + " Y:" + event.getY() + " display:" + rectDis);
@@ -121,15 +131,18 @@ public class MainActivity extends AppCompatActivity {
 
                             //Log.d("ACTION_MOVE", "floodFill" + value + " StartY:" + mStartY);
 
-                            Bitmap bitmap = orgBitmap.copy(Bitmap.Config.ARGB_8888, true);
+//                            Bitmap maskBitmap = orgBitmap.copy(Bitmap.Config.ARGB_8888, true);
+                            if (maskBitmap == null) {
+                                maskBitmap = Bitmap.createBitmap(orgBitmap.getWidth(), orgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+                            }
 
-                            //Log.d("ACTION_MOVE", "NEW:" + bitmap + " ORG:" + orgBitmap);
+                            //Log.d("ACTION_MOVE", "NEW:" + maskBitmap + " ORG:" + orgBitmap);
 
-                            /*int count = */FloodFillUtils.floodFill(/*orgBitmap,*/ bitmap, realPoint[0], realPoint[1], value, value);
+                            int count =FloodFillUtils.floodFillBitmap(orgBitmap, maskBitmap, realPoint[0], realPoint[1], value, value);
 
-                            //Log.d("ACTION_MOVE Count->", "Count: "+ count);
+                            Log.d("ACTION_MOVE Count->", "Count: "+ count+ " maskBitmap:" + maskBitmap);
 
-                            mImageView.setImageBitmap(bitmap);
+                            mImageView.setImageBitmap(maskBitmap);
                         }
 
                         Log.d("ACTION_MOVE", ">>>>>> floodFill value:" + value + " StartY:" + mStartY + " Y:" + event.getY());
@@ -231,11 +244,16 @@ public class MainActivity extends AppCompatActivity {
 
                     orgBitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
 
+                    orgPixels = new int[orgBitmap.getWidth() * orgBitmap.getHeight()];
+                    orgBitmap.getPixels(orgPixels, 0, orgBitmap.getWidth(), 0, 0, orgBitmap.getWidth(), orgBitmap.getHeight());
+
+                    changedPixels = new int[orgPixels.length];
+
                     floodFillBitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
 
                     mImageView.setImageBitmap(orgBitmap);
 
-//                    Bitmap bitmap1 = FloodFillUtils.floodFillBitmap(bitmap, 10, 10, 20, 20);
+//                    Bitmap bitmap1 = FloodFillUtils.floodFillBitmap(maskBitmap, 10, 10, 20, 20);
 //
 //                    mImageView.setImageBitmap(bitmap1);
 
