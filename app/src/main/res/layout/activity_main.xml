@@ -17,7 +17,7 @@
 
     <ImageView
         android:layout_weight="1"
-        android:background="@android:color/holo_green_dark"
+        android:background="@android:color/black"
         android:id="@+id/resultImageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

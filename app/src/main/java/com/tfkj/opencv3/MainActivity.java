@@ -101,10 +101,11 @@ public class MainActivity extends AppCompatActivity {
                                 resultBitmap = Bitmap.createBitmap(orgBitmap.getWidth(), orgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
                             }
 
-                            FloodFillUtils.floodFillBitmap(orgBitmap, maskBitmap, resultBitmap, realPoint[0], realPoint[1], value, value);
+                            int[] pixels = FloodFillUtils.floodFillBitmapWithMask(orgBitmap, maskBitmap, resultBitmap, realPoint[0], realPoint[1], value, value);
 
                             int[] maskPixels = new int[maskBitmap.getWidth() * maskBitmap.getHeight()];
                             maskBitmap.getPixels(maskPixels, 0, maskBitmap.getWidth(), 0, 0, maskBitmap.getWidth(), maskBitmap.getHeight());
+
 //                            for (int i = 0; i < maskPixels.length; i++){
 //                                Log.d("ACTION_MOVE maskPixels", "Pix: "+ maskPixels[i]);
 //                            }
@@ -113,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
 
 //                            mSrcImageView.setImageBitmap(maskBitmap);
                             mMaskImageView.setImageBitmap(maskBitmap);
+                            resultBitmap.setPixels(pixels, 0, resultBitmap.getWidth(), 0, 0, resultBitmap.getWidth(), resultBitmap.getHeight());
                             mResultImageView.setImageBitmap(resultBitmap);
 
                         } else {
@@ -158,13 +160,14 @@ public class MainActivity extends AppCompatActivity {
 
                             //Log.d("ACTION_MOVE", "NEW:" + maskBitmap + " ORG:" + orgBitmap);
 
-                            int count =FloodFillUtils.floodFillBitmap(orgBitmap, maskBitmap, resultBitmap, realPoint[0], realPoint[1], value, value);
+                            int[] pixels =FloodFillUtils.floodFillBitmapWithMask(orgBitmap, maskBitmap, resultBitmap, realPoint[0], realPoint[1], value, value);
 
 //                            Log.d("ACTION_MOVE Count->", "Count: "+ count+ " maskBitmap:" + maskBitmap);
 
 //                            mSrcImageView.setImageBitmap(maskBitmap);
                             mMaskImageView.setImageBitmap(maskBitmap);
 
+                            resultBitmap.setPixels(pixels, 0, resultBitmap.getWidth(), 0, 0, resultBitmap.getWidth(), resultBitmap.getHeight());
                             mResultImageView.setImageBitmap(resultBitmap);
                         }
 

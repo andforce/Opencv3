@@ -101,10 +101,11 @@ int FILLMODE = 1;
 int g_nNewMaskVal = 255;
 
 extern "C"
-JNIEXPORT jint JNICALL
-Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, jobject bitmap,
-                                                     jobject maskBitmap, jobject  resultBitmap, jint x, jint y, jint low,
-                                                     jint up) {
+JNIEXPORT jintArray JNICALL
+Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmapWithMask(JNIEnv *env, jclass type,
+                                                             jobject bitmap, jobject maskBitmap,
+                                                             jobject resultBitmap, jint x, jint y,
+                                                             jint low, jint up) {
 
     LOGD("start()");
     // 把Bitmap转成Mat
@@ -153,95 +154,38 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
                          Scalar(lowDifference, lowDifference, lowDifference),
                          Scalar(UpDifference, UpDifference, UpDifference), flags);
 
-    if (true){
 
-        Mat sizeCorrect;
+    Mat sizeCorrect;
+    sizeCorrect = range(maskGray);
+    Mat alpha = createAlphaFromMask(sizeCorrect);
+    Mat resultMat;
+    addAlpha(srcBGR, resultMat, alpha);
+    saveMat2File(resultMat, "mergedResultRGBA.png");
 
-        if (false){
-            sizeCorrect = range(maskGray);
+    Mat resultMatRGBA;
+    cvtColor(resultMat,resultMatRGBA,COLOR_BGRA2RGBA);
 
-            Mat resultRGBA;
-            srcRGBA.copyTo(resultRGBA);
+    saveMat2File(resultMatRGBA, "resultMatRGBA.png");
 
-            vector<Mat> channels;
-            split(resultRGBA, channels);
-
-            for (int i = 0; i < channels[3].rows; i++) {
-                for (int j = 0; j < channels[3].cols; j++) {
-                    if (i <= channels[3].rows / 2){
-                        channels[3].at<uchar>(i, j) = 0;
-                    } else{
-                        channels[3].at<uchar>(i, j) = 255;
-                    }
-                }
-            }
-
-            Mat mergedResultRGBA;
-            merge(channels, mergedResultRGBA);
-
-            saveMat2File(mergedResultRGBA, "mergedResultRGBA.png");
-
-            MatToBitmap2(env, mergedResultRGBA, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
-        } else {
-            sizeCorrect = range(maskGray);
-            Mat alpha = createAlphaFromMask(sizeCorrect);
-            Mat resultMat;
-            addAlpha(srcBGR, resultMat, alpha);
-            saveMat2File(resultMat, "mergedResultRGBA.png");
-
-            Mat resultMatRGBA;
-            cvtColor(resultMat,resultMatRGBA,COLOR_BGRA2RGBA);
-
-            saveMat2File(resultMatRGBA, "resultMatRGBA.png");
-
-            MatToBitmap2(env, resultMatRGBA, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
-        }
+    //resultMatRGBA = removeChannel(resultMatRGBA, 3);
+    //MatToBitmap2(env, resultMatRGBA, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
 
 
+    // 把mask转成Bitmap返回到Java层
+    cvtColor(maskGray, maskRGBA, COLOR_GRAY2RGBA);
 
+    sizeCorrect = range(maskRGBA);
 
-        // 把mask转成Bitmap返回到Java层
-        cvtColor(maskGray, maskRGBA, COLOR_GRAY2RGBA);
+    MatToBitmap2(env, sizeCorrect, maskBitmap, static_cast<jboolean>(false), CV_8UC4);
 
-        sizeCorrect = range(maskRGBA);
-
-        MatToBitmap2(env, sizeCorrect, maskBitmap, static_cast<jboolean>(false), CV_8UC4);
-    } else {
-        // DEBUG
-        saveMat2File(maskGray, "maskGray.jpg");
-
-        LOGD("flood fill count is: %d", area);
-
-        // 转换成RGBA
-        // cvtColor(maskGray,maskRGBA,COLOR_BGR2RGBA);
-        cvtColor(maskGray, maskRGBA, COLOR_GRAY2RGBA);
-        LOGD("cvtColor()");
-
-        // 转成Bitmap
-        Mat adjust = range(maskRGBA);
-
-//    // 反色操作
-//    bitwise_not(adjust,adjust);
-//
-//    Mat inversedMat = 255 - adjust;
-//
-//    path = "/storage/emulated/0/Download/fanse.jpg";
-//    imwrite(path,inversedMat);
-//
-////    bitwise_not(adjust, srcRGBA);
-//
-//    path = "/storage/emulated/0/Download/src1.jpg";
-//    imwrite(path,inversedMat);
-//
-////    Mat result;
-////    srcRGBA.copyTo(result, inversedMat);
-////
-////    MatToBitmap(env, result, maskBitmap, CV_8UC4);
-
-        MatToBitmap2(env, adjust, maskBitmap, static_cast<jboolean>(true), CV_8UC4);
-    }
-    return area;
+    // 返回int[]
+    int size = resultMatRGBA.rows * resultMatRGBA.cols;
+    jintArray result = env->NewIntArray(size);
+    env->SetIntArrayRegion(result, 0, size, (jint *)resultMatRGBA.data);
+    //env->ReleaseIntArrayElements(buf_, buf, 0);
+    return result;
 }
+
 
 Mat srcMat;
 Mat dstMat;
