@@ -99,8 +99,8 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
 //    BitmapToMat(env, maskBitmap, maskRGBA, CV_8UC4);
 
     //转换成BGR
-    cvtColor(srcRGBA, srcBGR, CV_RGBA2BGR);
-//    cvtColor(maskRGBA,maskGray,CV_RGBA2BGR);
+    cvtColor(srcRGBA, srcBGR, COLOR_RGBA2BGR);
+//    cvtColor(maskRGBA,maskGray,COLOR_RGBA2BGR);
 
 
     int lowDifference = FILLMODE == 0 ? 0 : low;
@@ -175,9 +175,9 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
             saveMat2File(resultMat, "mergedResultRGBA.png");
 
             Mat resultMatRGBA;
-            cvtColor(resultMat,resultMatRGBA,CV_BGRA2RGBA);
+            cvtColor(resultMat,resultMatRGBA,COLOR_BGRA2RGBA);
 
-            saveMat2File(resultMat, "resultMatRGBA.png");
+            saveMat2File(resultMatRGBA, "resultMatRGBA.png");
 
             MatToBitmap2(env, resultMatRGBA, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
         }
@@ -186,7 +186,7 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
 
 
         // 把mask转成Bitmap返回到Java层
-        cvtColor(maskGray, maskRGBA, CV_GRAY2RGBA);
+        cvtColor(maskGray, maskRGBA, COLOR_GRAY2RGBA);
 
         sizeCorrect = range(maskRGBA);
 
@@ -198,8 +198,8 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmap(JNIEnv *env, jclass type, j
         LOGD("flood fill count is: %d", area);
 
         // 转换成RGBA
-        // cvtColor(maskGray,maskRGBA,CV_BGR2RGBA);
-        cvtColor(maskGray, maskRGBA, CV_GRAY2RGBA);
+        // cvtColor(maskGray,maskRGBA,COLOR_BGR2RGBA);
+        cvtColor(maskGray, maskRGBA, COLOR_GRAY2RGBA);
         LOGD("cvtColor()");
 
         // 转成Bitmap
@@ -246,9 +246,9 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
     Mat bgr;
 
     //转换成BGRA
-    cvtColor(srcMat, bgra, CV_RGBA2BGRA);
+    cvtColor(srcMat, bgra, COLOR_RGBA2BGRA);
     //转换成BGR
-    cvtColor(srcMat, bgr, CV_RGBA2BGR);
+    cvtColor(srcMat, bgr, COLOR_RGBA2BGR);
 
     srcMat = bgr;
 
@@ -316,7 +316,7 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jo
     LOGD("有多少个点被重画-----------------%d", area);
 
     Mat show;
-    cvtColor(dst, dst, CV_BGR2RGBA);
+    cvtColor(dst, dst, COLOR_BGR2RGBA);
 
     MatToBitmap2(env, dst, bitmap, static_cast<jboolean>(true), CV_8UC4);
 
