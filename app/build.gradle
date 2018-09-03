@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "com.tfkj.opencv3"
+        applicationId "com.andforce.opencv3"
         minSdkVersion 23
         targetSdkVersion 26
         versionCode 1

@@ -1,4 +1,4 @@
-package com.tfkj.opencv3;
+package com.andforce.opencv3;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -16,7 +16,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.tfkj.opencv3.view.FloodFillImageView;
+import com.andforce.opencv3.view.FloodFillImageView;
 
 public class MainActivity extends AppCompatActivity {
 

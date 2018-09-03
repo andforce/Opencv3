@@ -16,7 +16,7 @@
         android:layout_weight="1"
         tools:ignore="MissingConstraints" />
 
-    <com.tfkj.opencv3.view.FloodFillImageView
+    <com.andforce.opencv3.view.FloodFillImageView
         android:background="#66550000"
         android:id="@+id/imageView"
         android:layout_width="match_parent"

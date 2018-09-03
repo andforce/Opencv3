@@ -101,7 +101,7 @@ static bool DEBUG = false;
 
 extern "C"
 JNIEXPORT jintArray JNICALL
-Java_com_tfkj_opencv3_FloodFillUtils_removeColors(JNIEnv *env, jclass type,
+Java_com_andforce_opencv3_RemoveColors_removeColors(JNIEnv *env, jclass type,
                                                              jobject srcBitmap, jobject maskBitmap,
                                                              jint x, jint y,
                                                              jint low, jint up) {
