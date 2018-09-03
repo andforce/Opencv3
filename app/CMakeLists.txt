@@ -57,19 +57,6 @@ add_library( # Sets the name of the library.
              src/main/cpp/flood_fill.cpp
              )
 
-#add_library( # Sets the name of the library.
-#             find-objects
-#
-#             # Sets the library as a shared library.
-#             SHARED
-#
-#             # Provides a relative path to your source file(s).
-#             # Associated headers in the same location as their source
-#             # file are automatically included.
-#             src/main/cpp/find_objects.cpp
-#             src/main/cpp/cpp_java_utils.cpp
-#             )
-
 include_directories(libs/include)
 
 # Specifies libraries CMake should link to your target library. You

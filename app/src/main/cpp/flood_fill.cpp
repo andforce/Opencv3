@@ -97,50 +97,31 @@ Mat removeChannel(Mat &src, int which){
 
 Mat srcBGR;
 Mat maskGray;
-int FILLMODE = 1;
-int g_nNewMaskVal = 255;
+static bool DEBUG = false;
 
 extern "C"
 JNIEXPORT jintArray JNICALL
 Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmapWithMask(JNIEnv *env, jclass type,
                                                              jobject bitmap, jobject maskBitmap,
-                                                             jobject resultBitmap, jint x, jint y,
+                                                             jint x, jint y,
                                                              jint low, jint up) {
 
     LOGD("start()");
+
     // 把Bitmap转成Mat
     Mat srcRGBA;
     BitmapToMat(env, bitmap, srcRGBA, CV_8UC4);
-    Mat maskRGBA;
-//    BitmapToMat(env, maskBitmap, maskRGBA, CV_8UC4);
 
     //转换成BGR
     cvtColor(srcRGBA, srcBGR, COLOR_RGBA2BGR);
-//    cvtColor(maskRGBA,maskGray,COLOR_RGBA2BGR);
-
-
-    int lowDifference = FILLMODE == 0 ? 0 : low;
-    int UpDifference = FILLMODE == 0 ? 0 : up;
-
-    int b = (unsigned) 0;
-    int g = (unsigned) 0;
-    int r = (unsigned) 255;
 
 
     Rect fillRect;
-    Scalar newVal = Scalar(b, g, r);
-    Point mSeedPoint = Point(x, y);
-//    int area = floodFill(srcBGR, mSeedPoint, newVal, &fillRect,
-//                     Scalar(lowDifference, lowDifference, lowDifference),
-//                     Scalar(UpDifference, UpDifference, UpDifference), flags);
 
     maskGray.create(srcBGR.rows + 2, srcBGR.cols + 2, CV_8UC1);
     maskGray = Scalar::all(0);
 
-    //threshold(maskGray, maskGray, 1, 128, THRESH_BINARY);
-    int flags = 4 | FLOODFILL_MASK_ONLY | FLOODFILL_FIXED_RANGE | (g_nNewMaskVal << 8);
-    //g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
-
+    int flags = 4 | FLOODFILL_MASK_ONLY | FLOODFILL_FIXED_RANGE | (255 << 8);
 
     //    InputOutputArray:输入和输出图像。
     //    mask:            输入的掩码图像。
@@ -150,28 +131,24 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmapWithMask(JNIEnv *env, jclass
     //    loDiff：         最大的低亮度之间的差异。
     //    upDiff：         最大的高亮度之间的差异。
     //    flag：           选择算法连接方式。
-    int area = floodFill(srcBGR, maskGray, mSeedPoint, newVal, &fillRect,
-                         Scalar(lowDifference, lowDifference, lowDifference),
-                         Scalar(UpDifference, UpDifference, UpDifference), flags);
+    int area = floodFill(srcBGR, maskGray, Point(x, y), Scalar(0, 0, 255), &fillRect,
+                         Scalar(low, low, low),
+                         Scalar(up, up, up), flags);
 
 
-    Mat sizeCorrect;
-    sizeCorrect = range(maskGray);
+    LOGD("floodFill() fill pixel count: %d", area);
+
+    Mat sizeCorrect = range(maskGray);
     Mat alpha = createAlphaFromMask(sizeCorrect);
     Mat resultMat;
     addAlpha(srcBGR, resultMat, alpha);
-    saveMat2File(resultMat, "mergedResultRGBA.png");
 
-//    Mat resultMatRGBA;
-//    cvtColor(resultMat,resultMatRGBA,COLOR_BGRA2RGBA);
-//
-//    saveMat2File(resultMatRGBA, "resultMatRGBA.png");
-
-    //resultMatRGBA = removeChannel(resultMatRGBA, 3);
-    //MatToBitmap2(env, resultMatRGBA, resultBitmap, static_cast<jboolean>(false), CV_8UC4);
-
+    if (DEBUG) {
+        saveMat2File(resultMat, "mergedResultRGBA.png");
+    }
 
     // 把mask转成Bitmap返回到Java层
+    Mat maskRGBA;
     cvtColor(maskGray, maskRGBA, COLOR_GRAY2RGBA);
 
     sizeCorrect = range(maskRGBA);
@@ -182,108 +159,5 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmapWithMask(JNIEnv *env, jclass
     int size = resultMat.rows * resultMat.cols;
     jintArray result = env->NewIntArray(size);
     env->SetIntArrayRegion(result, 0, size, (jint *)resultMat.data);
-    //env->ReleaseIntArrayElements(buf_, buf, 0);
     return result;
-}
-
-
-Mat srcMat;
-Mat dstMat;
-Mat maskMat;
-
-int g_nConnectivity = 4;
-bool g_bUseMask = false;
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_tfkj_opencv3_FloodFillUtils_floodFill(JNIEnv *env, jobject instance, jobject bitmap,
-                                               jint x, jint y, jint low, jint up) {
-
-    BitmapToMat(env, bitmap, srcMat, CV_8UC4);
-
-    Mat bgra;
-    Mat bgr;
-
-    //转换成BGRA
-    cvtColor(srcMat, bgra, COLOR_RGBA2BGRA);
-    //转换成BGR
-    cvtColor(srcMat, bgr, COLOR_RGBA2BGR);
-
-    srcMat = bgr;
-
-    string path = "/storage/emulated/0/Download/src1.jpg";
-    imwrite(path, srcMat);
-
-//    MatToBitmap(env, srcMat, bitmap, CV_8UC3);
-//
-//    if (true){
-//        return;
-//    }
-
-    srcMat.copyTo(dstMat);
-
-
-    string dstPath = "/storage/emulated/0/Download/dst.jpg";
-    imwrite(dstPath, dstMat);
-
-    maskMat.create(srcMat.rows + 2, srcMat.cols + 2, CV_8UC1);
-
-    Point mSeedPoint = Point(x, y);
-
-    LOGD("start find-----------------%d, %d", x, y);
-
-    int lowDifference = FILLMODE == 0 ? 0 : low;
-    int UpDifference = FILLMODE == 0 ? 0 : up;
-
-//    int b = (unsigned) theRNG() & 255;
-//    int g = (unsigned) theRNG() & 255;
-//    int r = (unsigned) theRNG() & 255;
-
-    int b = (unsigned) 0;
-    int g = (unsigned) 0;
-    int r = (unsigned) 255;
-
-
-    Rect ccomp;
-    Scalar newVal = Scalar(b, g, r);
-    Mat dst = dstMat;//目标图的赋值
-
-    //int flags = g_nConnectivity + (g_nNewMaskVal << 8) + (FILLMODE == 1 ? FLOODFILL_FIXED_RANGE : 0);
-
-    int flags = 4 | FLOODFILL_FIXED_RANGE | (g_nNewMaskVal << 8);
-
-    int area;
-    if (g_bUseMask) {
-
-
-        threshold(maskMat, maskMat, 1, 128, THRESH_BINARY);
-        area = floodFill(dst, maskMat, mSeedPoint, newVal, &ccomp,
-                         Scalar(lowDifference, lowDifference, lowDifference),
-                         Scalar(UpDifference, UpDifference, UpDifference), flags);
-
-    } else {
-        LOGD("start find-----------------floodFill flags: %d", flags);
-
-        area = floodFill(dst, mSeedPoint, newVal, &ccomp,
-                         Scalar(lowDifference, lowDifference, lowDifference),
-                         Scalar(UpDifference, UpDifference, UpDifference), flags);
-
-        string path = "/storage/emulated/0/Download/555.jpg";
-        imwrite(path, dst);
-    }
-
-    LOGD("有多少个点被重画-----------------%d", area);
-
-    Mat show;
-    cvtColor(dst, dst, COLOR_BGR2RGBA);
-
-    MatToBitmap2(env, dst, bitmap, static_cast<jboolean>(true), CV_8UC4);
-
-//    Mat mat_image_src ;
-//    BitmapToMat(env,bitmap,mat_image_src);//图片转化成mat
-//    Mat mat_image_dst;
-//    blur(mat_image_src, mat_image_dst, Size2i(10,10));
-//    //第四步：转成java数组->更新
-//    MatToBitmap(env,mat_image_dst,bitmap);//mat转成化图片
-
 }
