@@ -9,17 +9,17 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 
 @SuppressLint("AppCompatCustomView")
-public class FloodFillImageView extends ImageView {
+public class RemoveColorsImageView extends ImageView {
 
-    public FloodFillImageView(Context context) {
+    public RemoveColorsImageView(Context context) {
         super(context);
     }
 
-    public FloodFillImageView(Context context, @Nullable AttributeSet attrs) {
+    public RemoveColorsImageView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public FloodFillImageView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public RemoveColorsImageView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

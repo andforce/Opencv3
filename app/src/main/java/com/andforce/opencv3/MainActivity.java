@@ -16,7 +16,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.andforce.opencv3.view.FloodFillImageView;
+import com.andforce.opencv3.view.RemoveColorsImageView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap maskBitmap;
     private Bitmap resultBitmap;
 
-    private FloodFillImageView mSrcImageView;
+    private RemoveColorsImageView mSrcImageView;
     private ImageView mMaskImageView;
     private ImageView mResultImageView;
 
