@@ -191,6 +191,19 @@ public class MainActivity extends AppCompatActivity {
                     srcBitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
 
                     mSrcImageView.setImageBitmap(srcBitmap);
+
+                    if (maskBitmap!= null && !maskBitmap.isRecycled()){
+                        maskBitmap.recycle();
+                        maskBitmap = null;
+                    }
+
+                    if (resultBitmap != null && !resultBitmap.isRecycled()){
+                        resultBitmap.recycle();
+                        resultBitmap = null;
+                    }
+
+                    mMaskImageView.setImageBitmap(null);
+                    mResultImageView.setImageBitmap(null);
                 }
                 break;
         }
