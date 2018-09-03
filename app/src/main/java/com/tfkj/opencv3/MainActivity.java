@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_OPEN_IMAGE = 1;
 
     static {
-        System.loadLibrary("flood-fill");
+        System.loadLibrary("remove-colors");
     }
 
     private int mStartY = -1;
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
                             Log.d("ACTION_MOVE imageSize->", "点到了 " + "X:" +event.getX()  + " Y:" + event.getY() + " realX:" + realPoint[0] + " realY:" + realPoint[1]);
 
-                            floodFill();
+                            removeColors();
 
                         } else {
                             Log.d("ACTION_MOVE imageSize->", "没点到 " + "X:" +event.getX()  + " Y:" + event.getY() + " display:" + rectDis);
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                                 value = 0;
                             }
 
-                            floodFill();
+                            removeColors();
                         }
 
                         Log.d("ACTION_MOVE", ">>>>>> floodFill value:" + value + " StartY:" + mStartY + " Y:" + event.getY());
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void floodFill() {
+    private void removeColors() {
 
         if (maskBitmap == null || maskBitmap.isRecycled()) {
             maskBitmap = Bitmap.createBitmap(srcBitmap.getWidth(), srcBitmap.getHeight(), Bitmap.Config.ARGB_8888);

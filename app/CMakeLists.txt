@@ -45,7 +45,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 
 add_library( # Sets the name of the library.
-             flood-fill
+             remove-colors
 
              # Sets the library as a shared library.
              SHARED
@@ -65,7 +65,7 @@ include_directories(libs/include)
 
 target_link_libraries( # Specifies the target library.
                        # find-objects
-                       flood-fill
+                       remove-colors
                        opencv_java3
                        # Links the target library to the log library
                        # included in the NDK.
