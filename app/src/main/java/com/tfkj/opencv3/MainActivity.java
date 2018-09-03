@@ -18,8 +18,6 @@ import android.widget.ImageView;
 
 import com.tfkj.opencv3.view.FloodFillImageView;
 
-import java.util.ArrayList;
-
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_OPEN_IMAGE = 1;
@@ -31,8 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private int mStartY = -1;
     private int value = 50;
 
-    private Bitmap floodFillBitmap;
-    private Bitmap orgBitmap;
+    private Bitmap srcBitmap;
     private Bitmap maskBitmap;
     private Bitmap resultBitmap;
 
@@ -40,12 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView mMaskImageView;
     private ImageView mResultImageView;
 
-    ArrayList<String> mResult;
-
     private int[] realPoint;
-
-    private int[] orgPixels;
-    private int[] changedPixels;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -99,26 +91,11 @@ public class MainActivity extends AppCompatActivity {
 
                             Log.d("ACTION_MOVE imageSize->", "点到了 " + "X:" +event.getX()  + " Y:" + event.getY() + " realX:" + realPoint[0] + " realY:" + realPoint[1]);
 
-                            Bitmap maskBitmap = orgBitmap.copy(Bitmap.Config.ARGB_8888, true);
-
-                            Log.d("ACTION_MOVE imageSize->", "Bitmap W:" + maskBitmap.getWidth() + " Bitmap H:" + maskBitmap.getHeight());
-
-                            if (resultBitmap == null){
-                                resultBitmap = Bitmap.createBitmap(orgBitmap.getWidth(), orgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
-                            }
-
-                            int[] pixels = FloodFillUtils.floodFillBitmapWithMask(orgBitmap, maskBitmap, realPoint[0], realPoint[1], value, value);
-
-                            int[] maskPixels = new int[maskBitmap.getWidth() * maskBitmap.getHeight()];
-                            maskBitmap.getPixels(maskPixels, 0, maskBitmap.getWidth(), 0, 0, maskBitmap.getWidth(), maskBitmap.getHeight());
-
-                            mMaskImageView.setImageBitmap(maskBitmap);
-                            resultBitmap.setPixels(pixels, 0, resultBitmap.getWidth(), 0, 0, resultBitmap.getWidth(), resultBitmap.getHeight());
-                            mResultImageView.setImageBitmap(resultBitmap);
+                            floodFill();
 
                         } else {
                             Log.d("ACTION_MOVE imageSize->", "没点到 " + "X:" +event.getX()  + " Y:" + event.getY() + " display:" + rectDis);
-                            mMaskImageView.setImageBitmap(orgBitmap);
+                            mMaskImageView.setImageBitmap(srcBitmap);
                         }
 
                         break;
@@ -131,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
                             if (event.getY() > mStartY){
                                 // Scroll Down
                                 value += 1;
-
                             } else {
                                 // Scroll Up
                                 value -= 1;
@@ -145,20 +121,7 @@ public class MainActivity extends AppCompatActivity {
                                 value = 0;
                             }
 
-                            if (maskBitmap == null) {
-                                maskBitmap = Bitmap.createBitmap(orgBitmap.getWidth(), orgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
-                            }
-
-                            if (resultBitmap == null){
-                                resultBitmap = Bitmap.createBitmap(orgBitmap.getWidth(), orgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
-                            }
-
-                            int[] pixels =FloodFillUtils.floodFillBitmapWithMask(orgBitmap, maskBitmap, realPoint[0], realPoint[1], value, value);
-
-                            mMaskImageView.setImageBitmap(maskBitmap);
-
-                            resultBitmap.setPixels(pixels, 0, resultBitmap.getWidth(), 0, 0, resultBitmap.getWidth(), resultBitmap.getHeight());
-                            mResultImageView.setImageBitmap(resultBitmap);
+                            floodFill();
                         }
 
                         Log.d("ACTION_MOVE", ">>>>>> floodFill value:" + value + " StartY:" + mStartY + " Y:" + event.getY());
@@ -174,6 +137,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void floodFill() {
+
+        if (maskBitmap == null || maskBitmap.isRecycled()) {
+            maskBitmap = Bitmap.createBitmap(srcBitmap.getWidth(), srcBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        if (resultBitmap == null || resultBitmap.isRecycled()){
+            resultBitmap = Bitmap.createBitmap(srcBitmap.getWidth(), srcBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        int[] pixels = RemoveColors.removeColors(srcBitmap, maskBitmap, realPoint[0], realPoint[1], value, value);
+
+        resultBitmap.setPixels(pixels, 0, resultBitmap.getWidth(), 0, 0, resultBitmap.getWidth(), resultBitmap.getHeight());
+        mResultImageView.setImageBitmap(resultBitmap);
+
+        mMaskImageView.setImageBitmap(maskBitmap);
     }
 
 
@@ -207,16 +188,9 @@ public class MainActivity extends AppCompatActivity {
                     bmOptions.inSampleSize = scaleFactor;
                     bmOptions.inPurgeable = true;
 
-                    orgBitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
+                    srcBitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
 
-                    orgPixels = new int[orgBitmap.getWidth() * orgBitmap.getHeight()];
-                    orgBitmap.getPixels(orgPixels, 0, orgBitmap.getWidth(), 0, 0, orgBitmap.getWidth(), orgBitmap.getHeight());
-
-                    changedPixels = new int[orgPixels.length];
-
-                    floodFillBitmap = BitmapFactory.decodeFile(imagePath, bmOptions);
-
-                    mSrcImageView.setImageBitmap(orgBitmap);
+                    mSrcImageView.setImageBitmap(srcBitmap);
                 }
                 break;
         }

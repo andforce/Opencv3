@@ -101,8 +101,8 @@ static bool DEBUG = false;
 
 extern "C"
 JNIEXPORT jintArray JNICALL
-Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmapWithMask(JNIEnv *env, jclass type,
-                                                             jobject bitmap, jobject maskBitmap,
+Java_com_tfkj_opencv3_FloodFillUtils_removeColors(JNIEnv *env, jclass type,
+                                                             jobject srcBitmap, jobject maskBitmap,
                                                              jint x, jint y,
                                                              jint low, jint up) {
 
@@ -110,7 +110,7 @@ Java_com_tfkj_opencv3_FloodFillUtils_floodFillBitmapWithMask(JNIEnv *env, jclass
 
     // 把Bitmap转成Mat
     Mat srcRGBA;
-    BitmapToMat(env, bitmap, srcRGBA, CV_8UC4);
+    BitmapToMat(env, srcBitmap, srcRGBA, CV_8UC4);
 
     //转换成BGR
     cvtColor(srcRGBA, srcBGR, COLOR_RGBA2BGR);
